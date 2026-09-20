@@ -187,7 +187,7 @@ export default function Cover({
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.2 }}
                   aria-label="Ver invitación"
-                  className="group absolute inset-x-0 top-1/2 mx-auto w-[88%] -translate-y-1/2"
+                  className="group absolute inset-x-0 top-1/2 mx-auto w-[88%] -translate-y-1/2 cursor-pointer"
                 >
                   {/* Flotación suave para que el sobre se sienta vivo. */}
                   <motion.div

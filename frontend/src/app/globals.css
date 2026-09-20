@@ -93,6 +93,17 @@ body {
   border-radius: 50px;
 }
 
+/* Tailwind v4 dejó de poner `cursor: pointer` en los botones, que es lo que
+   hacía la v3 y lo que la gente espera. Sin esto, el puntero sigue siendo una
+   flecha sobre el sobre, los botones del RSVP o las flechas de la galería, y
+   no se percibe que son pulsables. Los deshabilitados se excluyen. */
+button:not(:disabled),
+summary,
+[role="button"]:not([aria-disabled="true"]),
+label:has(> input[type="file"]) {
+  cursor: pointer;
+}
+
 /* Animaciones de los iconos. Son bucles suaves y continuos: la idea es que
    respiren, no que distraigan de la invitación.
    `transform-box: fill-box` hace que transform-origin se mida contra la caja

@@ -11,6 +11,7 @@ medios del evento (fotos, música y video).
 | Backend | Go 1.27 + chi | Binario estático de ~20 MB, arranque instantáneo, despliegue en Cloud Run / Fly.io sin JVM |
 | Base de datos | SQLite (modernc.org/sqlite, sin cgo) | Un archivo, cero operación, backup con Litestream |
 | Medios | Almacenamiento de objetos (disco local o Cloudflare R2) | Las imágenes, el audio y el video **nunca** entran a la base: solo se guarda la referencia |
+| Sesión del panel | JWT firmado con HS256, una hora | Con lista de revocación, para poder anular un token antes de que venza |
 | Frontend | Next.js 16 + TypeScript + Tailwind v4 + Motion | SSR para la miniatura de WhatsApp, responsive mobile-first |
 
 ### Por qué los medios no van en la base
@@ -29,6 +30,45 @@ nombre y los pases de ese invitado: nunca el teléfono, las notas internas ni
 la lista de los demás. Al confirmar, el backend recorta el número de
 asistentes al máximo de pases asignados, así que nadie puede confirmar de más
 editando el formulario.
+
+## Cómo se guardan los medios
+
+Las claves siguen el patrón `<tipo>/<sección>/<archivo>`, de modo que audio,
+imágenes y video quedan separados:
+
+```
+audio/music/      la canción que suena al abrir el sobre
+image/cover/      la foto detrás del sobre
+image/hero/       la foto de apertura
+image/gallery/    el carrusel
+image/dresscode/  la ilustración del código de vestuario
+video/            el video de entrada
+```
+
+`storage.KeyFor` es el único sitio que decide esa ruta. Al arrancar, el
+servidor reubica los archivos que no la cumplan y borra las carpetas que
+queden vacías, así que cambiar la convención repara lo ya guardado en vez de
+dejar dos organizaciones conviviendo.
+
+## Sesión del panel
+
+El login devuelve un JWT firmado con HS256 que vence en una hora; pasado ese
+plazo hay que volver a entrar. La validación restringe el algoritmo a HS256:
+sin eso, un token con `alg: none` se saltaría la comprobación de firma.
+
+Un JWT vale por sí mismo hasta que vence, así que hay dos formas de anularlo
+antes:
+
+- **Salir** anota el identificador del token (`jti`) en `revoked_tokens`. La
+  tabla se limpia sola al consultarla, borrando lo ya vencido.
+- **Salir de todos los dispositivos** guarda un momento de corte en
+  `admin_users.tokens_valid_from` y rechaza todo lo emitido antes. El corte se
+  guarda un segundo por delante, porque el `iat` de un JWT se mide en segundos
+  enteros y un token emitido en ese mismo segundo no quedaría estrictamente
+  antes del corte.
+
+`JWT_SECRET` es obligatoria en producción. Sin ella se genera una clave al azar
+en cada arranque, lo que desconecta a todo el mundo al reiniciar.
 
 ## Arrancar en local
 
@@ -71,17 +111,19 @@ ejemplo.
 
 | Método | Ruta | Descripción |
 |--------|------|-------------|
-| POST | `/api/admin/login` · `/logout` | Sesión |
+| POST | `/api/admin/login` · `/logout` · `/logout-all` | Sesión |
 | GET | `/api/admin/summary` | Totales del dashboard |
 | GET/PUT | `/api/admin/event` | Datos del evento |
-| PUT | `/api/admin/venues` · `/itinerary` | Reemplazan la lista completa |
+| PUT | `/api/admin/venues` · `/itinerary` · `/details` | Reemplazan la lista completa |
 | GET/POST | `/api/admin/guests` | Listar y crear |
 | POST | `/api/admin/guests/import` | Importar CSV |
+| GET | `/api/admin/guests/export` | Descargar CSV, con `?status=confirmed` |
+| GET | `/api/admin/guests/{id}/qr` | Código QR del enlace, en PNG |
 | PUT/DELETE | `/api/admin/guests/{id}` | Editar y eliminar |
 | GET/POST | `/api/admin/media` | Listar y subir |
 | PUT | `/api/admin/media/reorder` · `/{id}` | Orden y descripción |
 | DELETE | `/api/admin/media/{id}` | Eliminar archivo y registro |
-| GET | `/api/admin/songs` | Sugerencias para el DJ |
+| GET | `/api/admin/songs` · `/songs/export` | Sugerencias para el DJ |
 
 ## Despliegue
 
@@ -125,5 +167,9 @@ no se recarga en caliente.
   API, pero la tabla solo permite crear y eliminar.
 - Reordenar la galería arrastrando: el endpoint `media/reorder` existe, falta
   la interfaz.
-- No hay envío automático de WhatsApp: el panel arma el enlace `wa.me` y tú lo
-  envías.
+- No hay forma de borrar una sugerencia musical desde el panel.
+- El mapa usa `output=embed`, que no es parte de la API documentada de Google.
+  Es lo único que funciona sin clave ni facturación; está aislado en una sola
+  función por si hay que cambiar a la Maps Embed API de pago.
+- Los iconos de Lordicon exigen acreditarlos en el pie de la invitación por su
+  licencia CC BY-ND 4.0, y suman unos 575 KB de descarga.

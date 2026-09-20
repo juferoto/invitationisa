@@ -6,12 +6,11 @@ import Band from "@/components/invitation/Band";
 import Countdown from "@/components/invitation/Countdown";
 import Cover from "@/components/invitation/Cover";
 import Gallery from "@/components/invitation/Gallery";
+import LordIcon, { LordIconCredit } from "@/components/invitation/LordIcon";
 import {
   CalendarIcon,
   DetailIcon,
-  EnvelopeGiftIcon,
   HangerIcon,
-  InstagramIcon,
   QuoteMark,
   UploadPhotoIcon,
   VinylIcon,
@@ -466,7 +465,12 @@ export default async function InvitationPage({ params }: Props) {
           {event.giftMessage && (
             <Band tone="paper">
               <Reveal className="text-center">
-                <EnvelopeGiftIcon className="mx-auto mb-2 h-12 w-12 text-[var(--event-accent)]" />
+                <LordIcon
+                  code="ibydboev"
+                  primary={event.themePrimary}
+                  secondary={event.themeAccent}
+                  className="mx-auto mb-2 block h-16 w-16"
+                />
                 <SectionTitle>Lluvia de sobres</SectionTitle>
                 <p>{event.giftMessage}</p>
               </Reveal>
@@ -478,7 +482,12 @@ export default async function InvitationPage({ params }: Props) {
               <Reveal className="text-center">
                 {event.shareTitle && (
                   <>
-                    <InstagramIcon className="mx-auto mb-2 h-12 w-12 text-[var(--event-accent)]" />
+                    <LordIcon
+                      code="bmlkvhui"
+                      primary={event.themePrimary}
+                      secondary={event.themeAccent}
+                      className="mx-auto mb-2 block h-16 w-16"
+                    />
                     <SectionTitle>{event.shareTitle}</SectionTitle>
                   </>
                 )}
@@ -549,6 +558,7 @@ export default async function InvitationPage({ params }: Props) {
                     {event.closingSignoff}
                   </p>
                 )}
+                <LordIconCredit />
               </Reveal>
             </Band>
           )}

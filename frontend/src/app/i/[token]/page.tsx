@@ -273,9 +273,17 @@ export default async function InvitationPage({ params }: Props) {
                   </h3>
                   <Ornament className="mb-6 mt-2" />
 
-                  {/* Datos a la izquierda, mapa a la derecha. En móvil se apila. */}
-                  <div className="card grid gap-6 overflow-hidden p-0 sm:grid-cols-2">
-                    <div className="p-7 text-center sm:text-left">
+                  {/* Dos bloques independientes, no una tarjeta partida:
+                      los datos a la izquierda y el mapa a la derecha. En móvil
+                      la rejilla colapsa a una columna y quedan apilados.
+                      Si no hay dirección no hay mapa, así que los datos ocupan
+                      todo el ancho en vez de dejar media fila vacía. */}
+                  <div
+                    className={
+                      v.address ? "grid items-stretch gap-5 sm:grid-cols-2" : ""
+                    }
+                  >
+                    <div className="card p-7 text-center sm:text-left">
                       <p className="font-display text-3xl">{v.name}</p>
                       {v.startsAt && (
                         <p className="mt-1 text-[var(--event-primary)]">
@@ -301,8 +309,9 @@ export default async function InvitationPage({ params }: Props) {
                         Cómo llegar
                       </a>
                     </div>
+
                     {v.address && (
-                      <div className="relative min-h-56 sm:min-h-full">
+                      <div className="card relative min-h-64 overflow-hidden p-0">
                         <iframe
                           src={mapsEmbedSrc(v)}
                           title={`Mapa de ${v.name}`}

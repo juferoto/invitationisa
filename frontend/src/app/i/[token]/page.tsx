@@ -431,7 +431,7 @@ export default async function InvitationPage({ params }: Props) {
 
                 {colors.length > 0 && (
                   <>
-                    <p className="mt-8 text-sm uppercase tracking-[0.05em] text-[var(--color-muted)]">
+                    <p className="mt-8 font-display text-xl tracking-[0.05em] text-[var(--event-primary)]">
                       Colores reservados
                     </p>
                     <p className="mt-1 font-display text-2xl">

@@ -291,12 +291,12 @@ export default async function InvitationPage({ params }: Props) {
                         </p>
                       )}
                       {v.address && (
-                        <p className="mt-3 text-sm text-[var(--color-muted)]">
+                        <p className="mt-3 text-sm text-[var(--event-primary)]">
                           {v.address}
                         </p>
                       )}
                       {v.city && (
-                        <p className="text-sm text-[var(--color-muted)]">
+                        <p className="text-sm text-[var(--event-primary)]">
                           {v.city}
                         </p>
                       )}

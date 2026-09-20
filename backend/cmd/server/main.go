@@ -143,8 +143,8 @@ func seedEvent(st *store.Store) error {
 		return err
 	}
 	if err := st.ReplaceVenues(ev.ID, []store.Venue{
-		{Kind: "ceremony", Name: "Parroquia", City: "Medellín", StartsAt: "17:00"},
-		{Kind: "reception", Name: "Salón de eventos", City: "Medellín", StartsAt: "19:00"},
+		{Kind: "ceremony", Name: "Parroquia", City: "", StartsAt: "17:00"},
+		{Kind: "reception", Name: "Salón de eventos", City: "", StartsAt: "19:00"},
 	}); err != nil {
 		return err
 	}

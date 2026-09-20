@@ -17,13 +17,14 @@ import (
 )
 
 type Server struct {
-	cfg   config.Config
-	store *store.Store
-	files storage.Store
+	cfg       config.Config
+	store     *store.Store
+	files     storage.Store
+	jwtSecret []byte
 }
 
-func New(cfg config.Config, st *store.Store, files storage.Store) *Server {
-	return &Server{cfg: cfg, store: st, files: files}
+func New(cfg config.Config, st *store.Store, files storage.Store, jwtSecret []byte) *Server {
+	return &Server{cfg: cfg, store: st, files: files, jwtSecret: jwtSecret}
 }
 
 func (s *Server) Router() http.Handler {

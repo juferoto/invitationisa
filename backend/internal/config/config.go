@@ -25,6 +25,9 @@ type Config struct {
 
 	MaxUploadBytes int64
 
+	// Clave con la que se firman los JWT de la sesión del panel.
+	JWTSecret string
+
 	// Credenciales del admin inicial; solo se usan si no existe ningún usuario.
 	SeedAdminEmail    string
 	SeedAdminPassword string
@@ -45,6 +48,7 @@ func Load() Config {
 		S3SecretKey:       env("S3_SECRET_KEY", ""),
 		S3Region:          env("S3_REGION", "auto"),
 		MaxUploadBytes:    envInt64("MAX_UPLOAD_BYTES", 128<<20), // 128 MB, suficiente para video corto
+		JWTSecret:         env("JWT_SECRET", ""),
 		SeedAdminEmail:    env("SEED_ADMIN_EMAIL", "admin@local"),
 		SeedAdminPassword: env("SEED_ADMIN_PASSWORD", "cambiame"),
 	}

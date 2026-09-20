@@ -1,4 +1,5 @@
 import Link from "next/link";
+import LogoutButton from "@/components/admin/LogoutButton";
 
 const NAV = [
   { href: "/admin", label: "Resumen" },
@@ -29,6 +30,7 @@ export default function AdminLayout({
               {item.label}
             </Link>
           ))}
+          <LogoutButton />
         </nav>
       </header>
       <main className="mx-auto max-w-5xl px-5 py-8">{children}</main>

@@ -103,9 +103,3 @@ CREATE TABLE IF NOT EXISTS admin_users (
     password_hash TEXT    NOT NULL,
     created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
 );
-
-CREATE TABLE IF NOT EXISTS sessions (
-    token      TEXT PRIMARY KEY,
-    user_id    INTEGER NOT NULL REFERENCES admin_users(id) ON DELETE CASCADE,
-    expires_at TEXT NOT NULL
-);

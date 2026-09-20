@@ -20,6 +20,8 @@ type ctxKey string
 
 const ctxUser ctxKey = "admin_user"
 
+// requireAdmin valida el JWT de la cookie. No hay consulta a la base: el
+// token lleva su propia firma y su vencimiento.
 func (s *Server) requireAdmin(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie(auth.CookieName)
@@ -27,12 +29,40 @@ func (s *Server) requireAdmin(next http.Handler) http.Handler {
 			writeError(w, http.StatusUnauthorized, "sesión requerida")
 			return
 		}
-		user, err := s.store.SessionUser(cookie.Value)
+		claims, err := auth.ParseToken(s.jwtSecret, cookie.Value)
 		if err != nil {
-			writeError(w, http.StatusUnauthorized, "sesión inválida o vencida")
+			// La cookie caducada se limpia para que el navegador no la siga
+			// mandando en cada petición.
+			s.clearSessionCookie(w)
+			writeError(w, http.StatusUnauthorized, "sesión vencida, vuelve a entrar")
 			return
 		}
+		user := &store.AdminUser{Email: claims.Email}
 		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), ctxUser, user)))
+	})
+}
+
+func (s *Server) setSessionCookie(w http.ResponseWriter, token string, expires time.Time) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     auth.CookieName,
+		Value:    token,
+		Path:     "/",
+		Expires:  expires,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Secure:   strings.HasPrefix(s.cfg.PublicURL, "https://"),
+	})
+}
+
+func (s *Server) clearSessionCookie(w http.ResponseWriter) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     auth.CookieName,
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Secure:   strings.HasPrefix(s.cfg.PublicURL, "https://"),
 	})
 }
 
@@ -53,29 +83,22 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusUnauthorized, "credenciales inválidas")
 		return
 	}
-	token := auth.NewSessionToken()
-	expires := time.Now().Add(7 * 24 * time.Hour)
-	if err := s.store.CreateSession(token, user.ID, expires); err != nil {
+	token, expires, err := auth.NewToken(s.jwtSecret, user.ID, user.Email)
+	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	http.SetCookie(w, &http.Cookie{
-		Name:     auth.CookieName,
-		Value:    token,
-		Path:     "/",
-		Expires:  expires,
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-		Secure:   strings.HasPrefix(s.cfg.PublicURL, "https://"),
+	s.setSessionCookie(w, token, expires)
+	writeJSON(w, http.StatusOK, map[string]any{
+		"email":     user.Email,
+		"expiresAt": expires.UTC().Format(time.RFC3339),
 	})
-	writeJSON(w, http.StatusOK, map[string]any{"email": user.Email})
 }
 
-func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
-	if cookie, err := r.Cookie(auth.CookieName); err == nil {
-		_ = s.store.DeleteSession(cookie.Value)
-	}
-	http.SetCookie(w, &http.Cookie{Name: auth.CookieName, Value: "", Path: "/", MaxAge: -1, HttpOnly: true})
+// handleLogout borra la cookie. Con JWT no hay sesión que invalidar en el
+// servidor: el token sigue siendo válido hasta que venza, como mucho una hora.
+func (s *Server) handleLogout(w http.ResponseWriter, _ *http.Request) {
+	s.clearSessionCookie(w)
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
 

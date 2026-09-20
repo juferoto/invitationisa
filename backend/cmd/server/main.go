@@ -47,6 +47,8 @@ func main() {
 		log.Fatalf("evento inicial: %v", err)
 	}
 
+	jwtSecret := resolveJWTSecret(cfg)
+
 	files, err := buildStorage(cfg)
 	if err != nil {
 		log.Fatalf("almacenamiento: %v", err)
@@ -58,7 +60,7 @@ func main() {
 
 	srv := &http.Server{
 		Addr:              cfg.Addr,
-		Handler:           api.New(cfg, st, files).Router(),
+		Handler:           api.New(cfg, st, files, jwtSecret).Router(),
 		ReadHeaderTimeout: 10 * time.Second,
 		// Sin WriteTimeout: subir un video de 100 MB puede tardar más que cualquier
 		// límite razonable. El tamaño lo controla MaxUploadBytes.
@@ -116,6 +118,18 @@ func reorganizeMedia(st *store.Store, files storage.Store) error {
 		}
 	}
 	return nil
+}
+
+// resolveJWTSecret devuelve la clave de firma. Sin JWT_SECRET configurada se
+// genera una al azar, lo que sirve para desarrollo pero cierra la sesión de
+// todos en cada reinicio; en producción hay que fijarla, y además compartirla
+// si algún día corren varias instancias.
+func resolveJWTSecret(cfg config.Config) []byte {
+	if cfg.JWTSecret != "" {
+		return []byte(cfg.JWTSecret)
+	}
+	log.Println("JWT_SECRET sin configurar: se usa una clave temporal y las sesiones no sobreviven a un reinicio")
+	return auth.RandomSecret()
 }
 
 func buildStorage(cfg config.Config) (storage.Store, error) {

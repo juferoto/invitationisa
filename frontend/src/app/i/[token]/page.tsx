@@ -75,6 +75,25 @@ function mapsLink(venue: Venue) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress(venue))}`;
 }
 
+/**
+ * Convierte "19:00" en "7:00 pm". Si el panel guardó otra cosa (por ejemplo
+ * "7 pm" o "medianoche"), se respeta tal cual en vez de romperlo.
+ */
+function formatTime(value: string) {
+  const match = /^(\d{1,2}):(\d{2})$/.exec(value.trim());
+  if (!match) return value;
+
+  const hours = Number(match[1]);
+  const minutes = match[2];
+  if (hours > 23 || Number(minutes) > 59) return value;
+
+  const suffix = hours < 12 ? "am" : "pm";
+  // El 0 y el 12 son los que se escapan de un módulo ingenuo: medianoche es
+  // 12 am y mediodía es 12 pm, no "0".
+  const hour12 = hours % 12 === 0 ? 12 : hours % 12;
+  return `${hour12}:${minutes} ${suffix}`;
+}
+
 function formatDate(iso: string) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
@@ -259,8 +278,8 @@ export default async function InvitationPage({ params }: Props) {
                     <div className="p-7 text-center sm:text-left">
                       <p className="font-display text-3xl">{v.name}</p>
                       {v.startsAt && (
-                        <p className="mt-1 text-[var(--event-accent)]">
-                          Hora: {v.startsAt}
+                        <p className="mt-1 text-[var(--event-primary)]">
+                          Hora: {formatTime(v.startsAt)}
                         </p>
                       )}
                       {v.address && (

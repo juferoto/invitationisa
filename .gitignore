@@ -12,3 +12,6 @@ backend/server
 
 # Volcados temporales de pruebas con curl
 /frontend/*.html
+
+# La canción se sirve desde el almacén de medios, no desde el repo
+/frontend/cancion.mpeg

@@ -14,7 +14,6 @@ import {
   VinylIcon,
 } from "@/components/invitation/Icons";
 import SectionIcon from "@/components/invitation/SectionIcon";
-import MusicPlayer from "@/components/invitation/MusicPlayer";
 import Ornament from "@/components/invitation/Ornament";
 import Reveal from "@/components/invitation/Reveal";
 import SectionTitle from "@/components/invitation/SectionTitle";
@@ -145,10 +144,9 @@ export default async function InvitationPage({ params }: Props) {
         guestName={guest.name}
         passes={guest.passes}
         coverUrl={coverPhoto?.url}
+        musicSrc={song?.url}
       >
         <main className="pb-0">
-          {song && <MusicPlayer src={song.url} />}
-
           {/* Apertura: solo la foto. El nombre, la fecha y los pases ya se
               dijeron en el sobre; repetirlos aquí sobra. */}
           {hero && (

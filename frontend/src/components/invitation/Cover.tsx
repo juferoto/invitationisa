@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 /**
  * Tamaño de fuente en unidades del propio sobre (1cqw = 1% de su ancho).
@@ -58,6 +58,7 @@ export default function Cover({
   guestName,
   passes,
   coverUrl,
+  musicSrc,
   children,
 }: {
   celebrantName: string;
@@ -65,9 +66,55 @@ export default function Cover({
   guestName: string;
   passes: number;
   coverUrl?: string;
+  /** Canción de fondo; arranca al abrir el sobre. */
+  musicSrc?: string;
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [playing, setPlaying] = useState(false);
+
+  /**
+   * El audio se lanza aquí, dentro del manejador del clic. Los navegadores
+   * bloquean la reproducción con sonido salvo que la dispare un gesto del
+   * usuario, y abrir el sobre lo es; hacerlo en un efecto posterior sería
+   * menos fiable.
+   */
+  function openInvitation() {
+    setOpen(true);
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.play().catch(() => {
+      // Si el navegador la rechaza igualmente, el botón flotante deja
+      // arrancarla a mano.
+      setPlaying(false);
+    });
+  }
+
+  function toggleMusic() {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (audio.paused) {
+      void audio.play().catch(() => setPlaying(false));
+    } else {
+      audio.pause();
+    }
+  }
+
+  // El estado del botón sigue al audio real, no al revés: así queda correcto
+  // aunque el sistema operativo pause la reproducción por su cuenta.
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    const onPlay = () => setPlaying(true);
+    const onPause = () => setPlaying(false);
+    audio.addEventListener("play", onPlay);
+    audio.addEventListener("pause", onPause);
+    return () => {
+      audio.removeEventListener("play", onPlay);
+      audio.removeEventListener("pause", onPause);
+    };
+  }, []);
 
   // Mientras la portada está visible no queremos scroll de fondo.
   useEffect(() => {
@@ -80,6 +127,21 @@ export default function Cover({
 
   return (
     <>
+      {/* Siempre montado, incluso con la portada cerrada: el elemento tiene
+          que existir antes del clic para poder reproducirlo en ese mismo
+          gesto. `loop` hace que se repita indefinidamente. */}
+      {musicSrc && <audio ref={audioRef} src={musicSrc} loop preload="auto" />}
+
+      {open && musicSrc && (
+        <button
+          onClick={toggleMusic}
+          aria-label={playing ? "Pausar la música" : "Reproducir la música"}
+          className="fixed bottom-5 right-5 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--event-primary)] text-white shadow-lg"
+        >
+          {playing ? "❚❚" : "♪"}
+        </button>
+      )}
+
       <AnimatePresence>
         {!open && (
           <motion.div
@@ -120,7 +182,7 @@ export default function Cover({
                 )}
 
                 <motion.button
-                  onClick={() => setOpen(true)}
+                  onClick={openInvitation}
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.2 }}

@@ -1,0 +1,176 @@
+@import "tailwindcss";
+
+/* La invitación es de tema claro y elegante: no seguimos prefers-color-scheme
+   aquí porque los colores los define cada evento desde el CRM. */
+@theme {
+  --font-display: var(--font-display), serif;
+  --font-body: var(--font-body), system-ui, sans-serif;
+  --font-script: var(--font-script), cursive;
+
+  --color-ink: #000000;
+  --color-paper: #fbfaf7;
+  /* Gris de texto secundario tomado de la referencia. */
+  --color-muted: #6e6e6e;
+}
+
+:root {
+  /* El panel sobrescribe estas dos en tiempo de render con el tema del evento. */
+  --event-primary: #184aaf;
+  --event-accent: #dcc888;
+
+  /* Escala tipográfica fluida. La referencia dimensiona el texto como una
+     fracción del ancho de la ventana (ratio × viewport), no en pasos fijos;
+     por eso sus títulos se ven grandes en escritorio sin romperse en móvil.
+     Los ratios de cada clamp salen de sus propias reglas CSS. */
+  --text-script: clamp(3.25rem, 11vw, 7.3rem); /* nombre en cursiva */
+  --text-script-sm: clamp(2.5rem, 8vw, 4.25rem); /* títulos de sección */
+  --text-script-xs: clamp(1.6rem, 5.5vw, 2.5rem); /* cursiva de apoyo */
+  --text-display: clamp(2.25rem, 7vw, 4.75rem); /* nombre de la quinceañera */
+  --text-section: clamp(1.75rem, 5vw, 3.25rem); /* títulos de sección */
+  --text-lead: clamp(1.2rem, 3.4vw, 1.9rem); /* mensajes destacados */
+  --text-body: clamp(1rem, 2.2vw, 1.15rem); /* cuerpo */
+  --text-label: clamp(0.72rem, 1.6vw, 0.85rem); /* etiquetas en mayúsculas */
+
+  /* La referencia usa 15px en tarjetas y 50px en botones tipo píldora. */
+  --radius-card: 15px;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-script {
+  font-family: var(--font-script);
+}
+
+/* Tarjeta de sección: esquinas de 15px y sombra suave, como en la referencia,
+   en vez del borde de un píxel que tenía antes. */
+.card {
+  border-radius: var(--radius-card);
+  background: rgb(255 255 255 / 0.72);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.04),
+    0 8px 24px -12px rgb(0 0 0 / 0.18);
+  border: 1px solid color-mix(in srgb, var(--event-accent) 35%, transparent);
+}
+
+/* El sobre es un contenedor: así su texto se mide contra el ancho del sobre y
+   no contra el de la ventana, que es lo que hacía que el nombre se saliera.
+   1cqw = 1% del ancho del sobre. */
+.envelope {
+  container-type: inline-size;
+}
+
+/* El tamaño lo calcula el componente según el largo del texto; aquí solo va
+   el comportamiento de salto de línea. */
+.envelope-name {
+  line-height: 1.02;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.envelope-title {
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+/* Dentro de la banda azul el texto y los adornos van en claro. */
+.on-royal .card {
+  background: rgb(255 255 255 / 0.1);
+  border-color: rgb(255 255 255 / 0.25);
+}
+
+/* Botón píldora, el radio de 50px de la referencia. */
+.pill {
+  border-radius: 50px;
+}
+
+/* Animaciones de los iconos. Son bucles suaves y continuos: la idea es que
+   respiren, no que distraigan de la invitación.
+   `transform-box: fill-box` hace que transform-origin se mida contra la caja
+   del propio trazo y no contra el lienzo entero del SVG, que es el error
+   clásico al rotar algo dentro de un <svg>. */
+@keyframes icon-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes icon-sway {
+  0%,
+  100% {
+    transform: rotate(-7deg);
+  }
+  50% {
+    transform: rotate(7deg);
+  }
+}
+@keyframes icon-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1.2px);
+  }
+}
+@keyframes icon-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
+  }
+}
+@keyframes icon-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  45% {
+    opacity: 0.2;
+  }
+}
+
+.anim-spin,
+.anim-sway,
+.anim-bob,
+.anim-pulse,
+.anim-blink {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.anim-spin {
+  animation: icon-spin 7s linear infinite;
+}
+.anim-sway {
+  animation: icon-sway 3.2s ease-in-out infinite;
+  transform-origin: top center;
+}
+.anim-bob {
+  animation: icon-bob 2.4s ease-in-out infinite;
+}
+.anim-pulse {
+  animation: icon-pulse 2.8s ease-in-out infinite;
+}
+.anim-blink {
+  animation: icon-blink 2.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

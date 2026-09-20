@@ -69,6 +69,20 @@ func (s *Server) requireAdmin(next http.Handler) http.Handler {
 	})
 }
 
+// sameSite traduce la configuración. "none" exige además Secure, así que solo
+// funciona sobre HTTPS; los navegadores descartan la cookie en caso contrario.
+func (s *Server) sameSite() http.SameSite {
+	if s.cfg.CookieSameSite == "none" {
+		return http.SameSiteNoneMode
+	}
+	return http.SameSiteLaxMode
+}
+
+// secureCookie va activo en HTTPS y, obligatoriamente, si SameSite es "none".
+func (s *Server) secureCookie() bool {
+	return strings.HasPrefix(s.cfg.PublicURL, "https://") || s.cfg.CookieSameSite == "none"
+}
+
 func (s *Server) setSessionCookie(w http.ResponseWriter, token string, expires time.Time) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     auth.CookieName,
@@ -76,8 +90,8 @@ func (s *Server) setSessionCookie(w http.ResponseWriter, token string, expires t
 		Path:     "/",
 		Expires:  expires,
 		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-		Secure:   strings.HasPrefix(s.cfg.PublicURL, "https://"),
+		SameSite: s.sameSite(),
+		Secure:   s.secureCookie(),
 	})
 }
 
@@ -88,8 +102,8 @@ func (s *Server) clearSessionCookie(w http.ResponseWriter) {
 		Path:     "/",
 		MaxAge:   -1,
 		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-		Secure:   strings.HasPrefix(s.cfg.PublicURL, "https://"),
+		SameSite: s.sameSite(),
+		Secure:   s.secureCookie(),
 	})
 }
 

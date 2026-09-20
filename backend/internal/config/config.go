@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"strconv"
+	"strings"
 )
 
 // Config se arma solo desde variables de entorno: así el mismo binario sirve
@@ -28,6 +29,12 @@ type Config struct {
 	// Clave con la que se firman los JWT de la sesión del panel.
 	JWTSecret string
 
+	// CookieSameSite vale "lax" o "none". Hay que ponerlo en "none" cuando el
+	// panel y la API viven en dominios distintos (por ejemplo Vercel y
+	// Fly.io), porque con "lax" el navegador no manda la cookie y el panel
+	// responde 401 en todo. Con un dominio propio para ambos, "lax" es mejor.
+	CookieSameSite string
+
 	// Credenciales del admin inicial; solo se usan si no existe ningún usuario.
 	SeedAdminEmail    string
 	SeedAdminPassword string
@@ -49,6 +56,7 @@ func Load() Config {
 		S3Region:          env("S3_REGION", "auto"),
 		MaxUploadBytes:    envInt64("MAX_UPLOAD_BYTES", 128<<20), // 128 MB, suficiente para video corto
 		JWTSecret:         env("JWT_SECRET", ""),
+		CookieSameSite:    strings.ToLower(env("COOKIE_SAMESITE", "lax")),
 		SeedAdminEmail:    env("SEED_ADMIN_EMAIL", "admin@local"),
 		SeedAdminPassword: env("SEED_ADMIN_PASSWORD", "cambiame"),
 	}

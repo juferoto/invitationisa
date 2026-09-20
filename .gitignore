@@ -9,3 +9,6 @@ backend/server
 .env
 .env.local
 .DS_Store
+
+# Volcados temporales de pruebas con curl
+/frontend/*.html

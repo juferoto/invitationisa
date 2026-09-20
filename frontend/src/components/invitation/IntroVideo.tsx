@@ -64,7 +64,10 @@ export default function IntroVideo({
               preload="auto"
               onEnded={() => setFinished(true)}
               onError={() => setFinished(true)}
-              className="absolute inset-0 h-full w-full object-cover"
+              // `contain` y no `cover`: el video se ve completo dentro de la
+              // pantalla en vez de ampliarse hasta llenarla y perder los
+              // bordes. Lo que sobra queda en negro, que es el fondo.
+              className="absolute inset-0 h-full w-full object-contain"
             />
 
             {/* Salida siempre disponible: si el video es largo, falla el

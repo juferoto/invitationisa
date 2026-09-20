@@ -59,10 +59,10 @@ export default function LogoutButton() {
       <button
         onClick={() => logout(true)}
         disabled={busy}
-        title="Invalida la sesión en todos los dispositivos, no solo en este"
+        title="Úsalo si crees que alguien más tiene acceso a tu sesión"
         className="text-xs text-[var(--color-muted)] underline underline-offset-2 disabled:opacity-50"
       >
-        En todos
+        Salir de todos los dispositivos
       </button>
     </div>
   );

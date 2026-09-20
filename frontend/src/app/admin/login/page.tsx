@@ -23,14 +23,20 @@ export default function LoginPage() {
       router.push("/admin");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo iniciar sesión");
+      setError(
+        err instanceof Error ? err.message : "No se pudo iniciar sesión",
+      );
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <form onSubmit={submit} className="mx-auto max-w-sm">
+    // Sin barra de navegación: al no haber sesión no hay a dónde navegar.
+    <form
+      onSubmit={submit}
+      className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center px-5"
+    >
       <h1 className="font-display text-3xl text-[var(--event-primary)]">
         Panel
       </h1>

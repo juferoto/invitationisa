@@ -48,7 +48,10 @@ export default function IntroVideo({
       <AnimatePresence>
         {!finished && src && (
           <motion.div
-            className="fixed inset-0 z-[60] bg-black"
+            // `100dvh` en vez de `inset-0` a secas: en el móvil la barra de
+            // direcciones aparece y desaparece, y la altura del viewport fijo
+            // deja franjas negras si no se sigue esa variación.
+            className="fixed inset-0 z-[60] h-[100dvh] w-full overflow-hidden bg-black"
             exit={{ opacity: 0 }}
             transition={{ duration: 1.1, ease: "easeInOut" }}
           >
@@ -61,14 +64,15 @@ export default function IntroVideo({
               preload="auto"
               onEnded={() => setFinished(true)}
               onError={() => setFinished(true)}
-              className="h-full w-full object-cover"
+              className="absolute inset-0 h-full w-full object-cover"
             />
 
             {/* Salida siempre disponible: si el video es largo, falla el
                 evento de fin o el invitado ya lo vio, no queda atrapado. */}
             <button
               onClick={() => setFinished(true)}
-              className="absolute bottom-6 right-6 rounded-full border border-white/40 bg-black/30 px-5 py-2 text-xs uppercase tracking-[0.1em] text-white backdrop-blur"
+              // El botón se aparta de la barra inferior del iPhone.
+              className="absolute right-6 bottom-[max(1.5rem,env(safe-area-inset-bottom))] z-10 rounded-full border border-white/40 bg-black/30 px-5 py-2 text-xs uppercase tracking-[0.1em] text-white backdrop-blur"
             >
               Saltar
             </button>

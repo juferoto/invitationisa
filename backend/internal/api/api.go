@@ -47,6 +47,7 @@ func (s *Server) Router() http.Handler {
 		r.Group(func(r chi.Router) {
 			r.Use(s.requireAdmin)
 			r.Post("/logout", s.handleLogout)
+			r.Post("/logout-all", s.handleLogoutAll)
 			r.Get("/me", s.handleMe)
 			r.Get("/summary", s.handleSummary)
 

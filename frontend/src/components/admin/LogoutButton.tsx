@@ -28,10 +28,14 @@ export default function LogoutButton() {
     };
   }, []);
 
-  async function logout() {
+  /** `all` cierra la sesión en todos los dispositivos, no solo en este. */
+  async function logout(all = false) {
+    if (all && !confirm("¿Cerrar la sesión en todos los dispositivos?")) return;
     setBusy(true);
     try {
-      await apiFetch("/api/admin/logout", { method: "POST" });
+      await apiFetch(all ? "/api/admin/logout-all" : "/api/admin/logout", {
+        method: "POST",
+      });
     } finally {
       router.push("/admin/login");
       router.refresh();
@@ -46,11 +50,19 @@ export default function LogoutButton() {
         {email}
       </span>
       <button
-        onClick={logout}
+        onClick={() => logout(false)}
         disabled={busy}
         className="rounded-full border border-black/15 px-4 py-1.5 text-xs disabled:opacity-50"
       >
         {busy ? "Saliendo…" : "Salir"}
+      </button>
+      <button
+        onClick={() => logout(true)}
+        disabled={busy}
+        title="Invalida la sesión en todos los dispositivos, no solo en este"
+        className="text-xs text-[var(--color-muted)] underline underline-offset-2 disabled:opacity-50"
+      >
+        En todos
       </button>
     </div>
   );

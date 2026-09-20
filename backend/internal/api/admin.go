@@ -37,6 +37,31 @@ func (s *Server) requireAdmin(next http.Handler) http.Handler {
 			writeError(w, http.StatusUnauthorized, "sesión vencida, vuelve a entrar")
 			return
 		}
+
+		// La firma y el vencimiento no bastan: un JWT sigue siendo válido
+		// aunque el dueño haya cerrado sesión. Estas dos comprobaciones son
+		// las que permiten anularlo antes de tiempo.
+		if revoked, err := s.store.IsTokenRevoked(claims.ID); err != nil {
+			writeError(w, http.StatusInternalServerError, err.Error())
+			return
+		} else if revoked {
+			s.clearSessionCookie(w)
+			writeError(w, http.StatusUnauthorized, "sesión cerrada, vuelve a entrar")
+			return
+		}
+
+		validFrom, err := s.store.TokensValidFrom(claims.Email)
+		if err != nil && !errors.Is(err, store.ErrNotFound) {
+			writeError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		if !validFrom.IsZero() && claims.IssuedAt != nil &&
+			claims.IssuedAt.Time.Before(validFrom) {
+			s.clearSessionCookie(w)
+			writeError(w, http.StatusUnauthorized, "sesión cerrada, vuelve a entrar")
+			return
+		}
+
 		user := &store.AdminUser{Email: claims.Email}
 		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), ctxUser, user)))
 	})
@@ -95,9 +120,32 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// handleLogout borra la cookie. Con JWT no hay sesión que invalidar en el
-// servidor: el token sigue siendo válido hasta que venza, como mucho una hora.
-func (s *Server) handleLogout(w http.ResponseWriter, _ *http.Request) {
+// handleLogout anula este token y borra la cookie. Anotarlo en la lista de
+// revocados es lo que impide que siga sirviendo si alguien se quedó con una
+// copia.
+func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
+	if cookie, err := r.Cookie(auth.CookieName); err == nil {
+		if claims, err := auth.ParseToken(s.jwtSecret, cookie.Value); err == nil {
+			expires := time.Now().Add(auth.SessionTTL)
+			if claims.ExpiresAt != nil {
+				expires = claims.ExpiresAt.Time
+			}
+			if err := s.store.RevokeToken(claims.ID, expires); err != nil {
+				log.Printf("revocar token: %v", err)
+			}
+		}
+	}
+	s.clearSessionCookie(w)
+	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+}
+
+// handleLogoutAll invalida todos los tokens del usuario, estén donde estén.
+func (s *Server) handleLogoutAll(w http.ResponseWriter, r *http.Request) {
+	user, _ := r.Context().Value(ctxUser).(*store.AdminUser)
+	if err := s.store.RevokeAllTokens(user.Email); err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 	s.clearSessionCookie(w)
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }

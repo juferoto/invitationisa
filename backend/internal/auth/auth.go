@@ -40,12 +40,16 @@ func CheckPassword(hash, plain string) bool {
 // NewToken firma un JWT que vence en SessionTTL y devuelve también la fecha de
 // vencimiento, para poder darle la misma vida a la cookie.
 func NewToken(secret []byte, userID int64, email string) (string, time.Time, error) {
-	expires := time.Now().Add(SessionTTL)
+	now := time.Now()
+	expires := now.Add(SessionTTL)
 	claims := Claims{
 		Email: email,
 		RegisteredClaims: jwt.RegisteredClaims{
+			// El jti identifica este token en concreto, para poder anularlo
+			// sin esperar a que venza.
+			ID:        newID(),
 			Subject:   fmt.Sprint(userID),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			IssuedAt:  jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(expires),
 		},
 	}
@@ -68,6 +72,12 @@ func ParseToken(secret []byte, raw string) (*Claims, error) {
 		return nil, ErrInvalidToken
 	}
 	return &claims, nil
+}
+
+func newID() string {
+	b := make([]byte, 16)
+	_, _ = rand.Read(b)
+	return base64.RawURLEncoding.EncodeToString(b)
 }
 
 // RandomSecret genera una clave de firma cuando no hay una configurada.

@@ -4,10 +4,12 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"path"
 	"path/filepath"
 	"strings"
 	"syscall"
@@ -50,6 +52,10 @@ func main() {
 		log.Fatalf("almacenamiento: %v", err)
 	}
 
+	if err := reorganizeMedia(st, files); err != nil {
+		log.Fatalf("reorganizar medios: %v", err)
+	}
+
 	srv := &http.Server{
 		Addr:              cfg.Addr,
 		Handler:           api.New(cfg, st, files).Router(),
@@ -76,6 +82,40 @@ func main() {
 		log.Printf("apagado: %v", err)
 	}
 	log.Println("servidor detenido")
+}
+
+// reorganizeMedia mueve los archivos que no estén en <tipo>/<sección>/. Se
+// ejecuta al arrancar para que un cambio en la convención de rutas repare los
+// archivos ya guardados en vez de dejar dos organizaciones conviviendo.
+func reorganizeMedia(st *store.Store, files storage.Store) error {
+	items, err := st.AllMedia()
+	if err != nil {
+		return err
+	}
+	moved := 0
+	for _, m := range items {
+		want := storage.KeyFor(m.Kind, m.Section, path.Base(m.StorageKey))
+		if want == m.StorageKey {
+			continue
+		}
+		if err := files.Move(context.Background(), m.StorageKey, want); err != nil {
+			return fmt.Errorf("mover %s: %w", m.StorageKey, err)
+		}
+		if err := st.UpdateMediaKey(m.ID, want); err != nil {
+			return err
+		}
+		moved++
+	}
+	if moved > 0 {
+		log.Printf("almacén reorganizado: %d archivos movidos a <tipo>/<sección>/", moved)
+	}
+	// El traslado deja atrás las carpetas de la organización anterior.
+	if local, ok := files.(*storage.Local); ok {
+		if err := local.PruneEmptyDirs(); err != nil {
+			log.Printf("limpiar carpetas vacías: %v", err)
+		}
+	}
+	return nil
 }
 
 func buildStorage(cfg config.Config) (storage.Store, error) {

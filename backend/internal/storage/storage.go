@@ -15,6 +15,9 @@ import (
 type Store interface {
 	// Put sube el contenido y devuelve la clave con la que quedó guardado.
 	Put(ctx context.Context, key string, r io.Reader, contentType string, size int64) error
+	// Move reubica un archivo ya guardado, para reorganizar el almacén sin
+	// volver a subirlo.
+	Move(ctx context.Context, oldKey, newKey string) error
 	Delete(ctx context.Context, key string) error
 	// URL devuelve la dirección pública para servir el archivo.
 	URL(key string) string
@@ -56,7 +59,7 @@ func preferredExt(exts []string) string {
 // Hace falta porque algunas extensiones son ambiguas: ".mpeg" se resuelve como
 // video/mpeg aunque el archivo sea un MP3, y entonces el <audio> del navegador
 // recibe un tipo de vídeo.
-func NewKey(section, filename, contentType string) string {
+func NewKey(kind, section, filename, contentType string) string {
 	ext := strings.ToLower(path.Ext(filename))
 	if ext == "" || !extFamilyMatches(ext, contentType) {
 		if exts, err := mime.ExtensionsByType(contentType); err == nil && len(exts) > 0 {
@@ -65,7 +68,23 @@ func NewKey(section, filename, contentType string) string {
 	}
 	buf := make([]byte, 12)
 	_, _ = rand.Read(buf)
-	return path.Join(section, hex.EncodeToString(buf)+ext)
+	return KeyFor(kind, section, hex.EncodeToString(buf)+ext)
+}
+
+// KeyFor es la única función que decide la ruta de un archivo en el almacén:
+// primero el tipo (image, audio, video) y dentro la sección de la invitación.
+// Tenerlo en un solo sitio evita que cada parte del código invente su propia
+// convención.
+func KeyFor(kind, section, filename string) string {
+	if section == "" {
+		section = "otros"
+	}
+	// La sección del video de entrada se llama igual que su tipo; sin esto la
+	// ruta quedaría como "video/video/".
+	if section == kind {
+		return path.Join(kind, filename)
+	}
+	return path.Join(kind, section, filename)
 }
 
 // KindFor clasifica el archivo en las tres categorías que maneja la invitación.

@@ -45,6 +45,17 @@ func (s *S3) Put(ctx context.Context, key string, r io.Reader, contentType strin
 	return err
 }
 
+// Move copia y borra: S3 no tiene una operación de renombrado.
+func (s *S3) Move(ctx context.Context, oldKey, newKey string) error {
+	_, err := s.client.CopyObject(ctx,
+		minio.CopyDestOptions{Bucket: s.bucket, Object: newKey},
+		minio.CopySrcOptions{Bucket: s.bucket, Object: oldKey})
+	if err != nil {
+		return err
+	}
+	return s.client.RemoveObject(ctx, s.bucket, oldKey, minio.RemoveObjectOptions{})
+}
+
 func (s *S3) Delete(ctx context.Context, key string) error {
 	return s.client.RemoveObject(ctx, s.bucket, key, minio.RemoveObjectOptions{})
 }

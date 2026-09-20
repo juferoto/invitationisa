@@ -38,6 +38,15 @@ func (l *Local) Put(_ context.Context, key string, r io.Reader, _ string, _ int6
 	return f.Sync()
 }
 
+func (l *Local) Move(_ context.Context, oldKey, newKey string) error {
+	src := filepath.Join(l.dir, filepath.FromSlash(oldKey))
+	dst := filepath.Join(l.dir, filepath.FromSlash(newKey))
+	if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
+		return err
+	}
+	return os.Rename(src, dst)
+}
+
 func (l *Local) Delete(_ context.Context, key string) error {
 	err := os.Remove(filepath.Join(l.dir, filepath.FromSlash(key)))
 	if os.IsNotExist(err) {
@@ -50,3 +59,32 @@ func (l *Local) URL(key string) string { return l.baseURL + "/" + key }
 
 // Dir expone la carpeta para poder servirla con http.FileServer.
 func (l *Local) Dir() string { return l.dir }
+
+// PruneEmptyDirs borra las carpetas que quedaron vacías, por ejemplo tras
+// reorganizar el almacén. Recorre de hoja a raíz para vaciar también las
+// carpetas que solo contenían otras carpetas vacías.
+func (l *Local) PruneEmptyDirs() error {
+	var dirs []string
+	err := filepath.Walk(l.dir, func(p string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() && p != l.dir {
+			dirs = append(dirs, p)
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	for i := len(dirs) - 1; i >= 0; i-- {
+		entries, err := os.ReadDir(dirs[i])
+		if err != nil {
+			continue
+		}
+		if len(entries) == 0 {
+			_ = os.Remove(dirs[i])
+		}
+	}
+	return nil
+}

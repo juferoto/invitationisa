@@ -87,3 +87,29 @@ func (s *Store) UpdateMediaCaption(eventID, id int64, caption string) error {
 	_, err := s.db.Exec(`UPDATE media SET caption=? WHERE id=? AND event_id=?`, caption, id, eventID)
 	return err
 }
+
+// AllMedia devuelve todos los archivos, de cualquier evento. Lo usa la rutina
+// de reorganización del almacén al arrancar.
+func (s *Store) AllMedia() ([]Media, error) {
+	rows, err := s.db.Query(`SELECT id, event_id, kind, section, storage_key, mime,
+		size_bytes, caption, sort_order, created_at FROM media ORDER BY id`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := []Media{}
+	for rows.Next() {
+		var m Media
+		if err := rows.Scan(&m.ID, &m.EventID, &m.Kind, &m.Section, &m.StorageKey,
+			&m.Mime, &m.SizeBytes, &m.Caption, &m.SortOrder, &m.CreatedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, m)
+	}
+	return out, rows.Err()
+}
+
+func (s *Store) UpdateMediaKey(id int64, key string) error {
+	_, err := s.db.Exec(`UPDATE media SET storage_key = ? WHERE id = ?`, key, id)
+	return err
+}

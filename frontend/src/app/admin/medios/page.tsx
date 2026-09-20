@@ -33,6 +33,13 @@ const SECTIONS = [
     single: false,
   },
   {
+    value: "dresscode",
+    label: "Ilustración del código de vestuario",
+    help: "Va al centro de esa sección, entre lo que visten mujeres y hombres. Se muestra completa, sin recortar.",
+    accept: "image/*",
+    single: true,
+  },
+  {
     value: "music",
     label: "Música de fondo",
     help: "Suena al abrir el sobre y se repite. Un MP3 de 128 kbps basta y pesa la mitad que uno de 256.",
@@ -41,8 +48,8 @@ const SECTIONS = [
   },
   {
     value: "video",
-    label: "Video",
-    help: "Se muestra con controles, sin reproducción automática.",
+    label: "Video de entrada",
+    help: "Se reproduce a pantalla completa antes de mostrar el sobre y se desvanece al terminar. Va silenciado: los navegadores bloquean el sonido automático. Déjalo vacío si no quieres video.",
     accept: "video/*",
     single: true,
   },

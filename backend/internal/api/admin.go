@@ -493,7 +493,7 @@ func (s *Server) handleUploadMedia(w http.ResponseWriter, r *http.Request) {
 		section = "gallery"
 	}
 
-	key := storage.NewKey(section, header.Filename, contentType)
+	key := storage.NewKey(kind, section, header.Filename, contentType)
 	if err := s.files.Put(r.Context(), key, file, contentType, header.Size); err != nil {
 		writeError(w, http.StatusInternalServerError, "no se pudo guardar el archivo: "+err.Error())
 		return

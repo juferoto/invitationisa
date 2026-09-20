@@ -12,9 +12,31 @@ export function CalendarIcon({ className = "" }: { className?: string }) {
     >
       <rect x="3" y="5" width="18" height="16" rx="2" />
       <path d="M3 10h18M8 3v4M16 3v4" />
-      <circle cx="8.5" cy="14.5" r="1" fill="currentColor" stroke="none" />
-      <circle cx="12" cy="14.5" r="1" fill="currentColor" stroke="none" />
-      <circle cx="15.5" cy="14.5" r="1" fill="currentColor" stroke="none" />
+      {/* Los días del calendario se encienden en cascada. */}
+      <circle
+        className="anim-blink"
+        cx="8.5"
+        cy="14.5"
+        r="1"
+        fill="currentColor"
+        stroke="none"
+      />
+      <circle
+        className="anim-blink [animation-delay:0.4s]"
+        cx="12"
+        cy="14.5"
+        r="1"
+        fill="currentColor"
+        stroke="none"
+      />
+      <circle
+        className="anim-blink [animation-delay:0.8s]"
+        cx="15.5"
+        cy="14.5"
+        r="1"
+        fill="currentColor"
+        stroke="none"
+      />
     </svg>
   );
 }
@@ -85,7 +107,10 @@ export function ClockIcon({ className = "" }: { className?: string }) {
       aria-hidden="true"
     >
       <circle cx="12" cy="12" r="9" />
-      <path d="M12 6.5V12l4 2.5" />
+      {/* La manecilla gira: es lo que hace legible que sea un reloj. */}
+      <g className="anim-spin" style={{ transformOrigin: "12px 12px" }}>
+        <path d="M12 6.5V12l4 2.5" />
+      </g>
     </svg>
   );
 }
@@ -104,24 +129,9 @@ export function ParkingIcon({ className = "" }: { className?: string }) {
       aria-hidden="true"
     >
       <rect x="3" y="3" width="18" height="18" rx="3" />
-      <path d="M9.5 17V7h3.2a3 3 0 0 1 0 6H9.5" />
+      <path className="anim-pulse" d="M9.5 17V7h3.2a3 3 0 0 1 0 6H9.5" />
     </svg>
   );
-}
-
-/** Elige el icono de un detalle por su nombre guardado en la base. */
-export function DetailIcon({ name }: { name: string }) {
-  const className = "mx-auto mb-3 h-11 w-11 text-[var(--event-accent)]";
-  switch (name) {
-    case "clock":
-      return <ClockIcon className={className} />;
-    case "parking":
-      return <ParkingIcon className={className} />;
-    case "calendar":
-      return <CalendarIcon className={className} />;
-    default:
-      return null;
-  }
 }
 
 /** Cámara con flecha de subida, para el botón de compartir fotos. */

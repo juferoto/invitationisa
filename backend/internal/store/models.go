@@ -7,6 +7,7 @@ type Event struct {
 	Title          string `json:"title"`
 	IntroMessage   string `json:"introMessage"`
 	EventDate      string `json:"eventDate"`
+	DateIcon       string `json:"dateIcon"`
 	RSVPDeadline   string `json:"rsvpDeadline"`
 	Blessing       string `json:"blessing"`
 	Parents        string `json:"parents"`

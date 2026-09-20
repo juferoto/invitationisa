@@ -8,13 +8,12 @@ import Cover from "@/components/invitation/Cover";
 import Gallery from "@/components/invitation/Gallery";
 import LordIcon, { LordIconCredit } from "@/components/invitation/LordIcon";
 import {
-  CalendarIcon,
-  DetailIcon,
   HangerIcon,
   QuoteMark,
   UploadPhotoIcon,
   VinylIcon,
 } from "@/components/invitation/Icons";
+import SectionIcon from "@/components/invitation/SectionIcon";
 import MusicPlayer from "@/components/invitation/MusicPlayer";
 import Ornament from "@/components/invitation/Ornament";
 import Reveal from "@/components/invitation/Reveal";
@@ -217,7 +216,12 @@ export default async function InvitationPage({ params }: Props) {
             <Reveal>
               {/* La referencia encabeza esta sección con un icono de calendario
                   y pone la fecha en cursiva. */}
-              <CalendarIcon className="mx-auto h-10 w-10 text-[var(--event-accent)]" />
+              <SectionIcon
+                name={event.dateIcon}
+                primary={event.themePrimary}
+                secondary={event.themeAccent}
+                className="mx-auto h-12 w-12 text-[var(--event-accent)]"
+              />
               <h2
                 className="mt-3 text-center font-display leading-tight text-[var(--event-primary)]"
                 style={{ fontSize: "var(--text-section)" }}
@@ -421,7 +425,11 @@ export default async function InvitationPage({ params }: Props) {
                 <div className="space-y-8">
                   {details.map((detail) => (
                     <div key={detail.id} className="card p-8 text-center">
-                      <DetailIcon name={detail.icon} />
+                      <SectionIcon
+                        name={detail.icon}
+                        primary={event.themePrimary}
+                        secondary={event.themeAccent}
+                      />
                       <h3 className="font-display text-3xl text-[var(--event-primary)] sm:text-4xl">
                         {detail.title}
                       </h3>

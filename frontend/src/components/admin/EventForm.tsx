@@ -53,13 +53,51 @@ const FIELDS: { key: keyof Event; label: string; multiline?: boolean }[] = [
   { key: "closingSignoff", label: "Despedida: remate (ej. ¡Te espero!)" },
 ];
 
-// Iconos disponibles para las tarjetas de "Detalles de mi fiesta".
-const DETAIL_ICONS = [
-  { value: "", label: "Sin icono" },
-  { value: "clock", label: "Reloj" },
-  { value: "parking", label: "Parking" },
-  { value: "calendar", label: "Calendario" },
+// Iconos propios disponibles. El campo acepta además cualquier código de
+// Lordicon (8 letras), que se copia desde lordicon.com en Export → Embed.
+const ICON_NAMES = [
+  "clock",
+  "parking",
+  "calendar",
+  "hanger",
+  "music",
+  "vinyl",
+  "gift",
+  "camera",
+  "upload",
 ];
+
+const ICON_HELP =
+  "Escribe un icono propio (clock, parking, calendar, hanger, music, vinyl, gift, camera, upload) o pega un código de Lordicon de 8 letras. Déjalo vacío para no mostrar ninguno.";
+
+/** Campo de icono reutilizable, con sugerencias de los nombres propios. */
+function IconField({
+  value,
+  onChange,
+  className = "",
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  className?: string;
+}) {
+  return (
+    <>
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        list="icon-names"
+        placeholder="Icono"
+        title={ICON_HELP}
+        className={`rounded-md border border-black/15 px-3 py-2 ${className}`}
+      />
+      <datalist id="icon-names">
+        {ICON_NAMES.map((name) => (
+          <option key={name} value={name} />
+        ))}
+      </datalist>
+    </>
+  );
+}
 
 const VENUE_PLACEHOLDER = {
   name: "Lugar",
@@ -165,6 +203,19 @@ export default function EventForm({ initial }: { initial: EventPayload }) {
             onChange={(e) => set("eventDate", fromLocalInput(e.target.value))}
             className="mt-1 w-full rounded-md border border-black/15 px-3 py-2"
           />
+        </label>
+        <label>
+          <span className="text-sm text-[var(--color-muted)]">
+            Icono de la fecha del evento
+          </span>
+          <div className="mt-1 grid">
+            <IconField
+              value={event.dateIcon}
+              onChange={(dateIcon) =>
+                setEvent((prev) => ({ ...prev, dateIcon }))
+              }
+            />
+          </div>
         </label>
         <label>
           <span className="text-sm text-[var(--color-muted)]">
@@ -329,27 +380,18 @@ export default function EventForm({ initial }: { initial: EventPayload }) {
       <section className="mt-10">
         <h2 className="font-display text-2xl">Detalles de mi fiesta</h2>
         <p className="mt-1 text-sm text-[var(--color-muted)]">
-          Tarjetas como Puntualidad o Estacionamiento.
+          Tarjetas como Puntualidad o Estacionamiento. {ICON_HELP}
         </p>
         {details.map((detail, i) => (
           <div key={i} className="mt-3 grid gap-2 sm:grid-cols-5">
-            <select
+            <IconField
               value={detail.icon}
-              onChange={(e) =>
+              onChange={(icon) =>
                 setDetails(
-                  details.map((d, j) =>
-                    j === i ? { ...d, icon: e.target.value } : d,
-                  ),
+                  details.map((d, j) => (j === i ? { ...d, icon } : d)),
                 )
               }
-              className="rounded-md border border-black/15 px-3 py-2"
-            >
-              {DETAIL_ICONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+            />
             <input
               value={detail.title}
               placeholder="Puntualidad"

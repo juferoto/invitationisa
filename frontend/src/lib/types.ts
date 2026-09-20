@@ -5,6 +5,7 @@ export type Event = {
   title: string;
   introMessage: string;
   eventDate: string;
+  dateIcon: string;
   rsvpDeadline: string;
   blessing: string;
   parents: string;

@@ -107,10 +107,15 @@ export function ClockIcon({ className = "" }: { className?: string }) {
       aria-hidden="true"
     >
       <circle cx="12" cy="12" r="9" />
-      {/* La manecilla gira: es lo que hace legible que sea un reloj. */}
-      <g className="anim-spin" style={{ transformOrigin: "12px 12px" }}>
-        <path d="M12 6.5V12l4 2.5" />
+      {/* Marcas de las 12, 3, 6 y 9 para que se lea el avance. */}
+      <path d="M12 3.6v1.4M20.4 12H19M12 20.4V19M3.6 12H5" opacity="0.5" />
+      <g className="clock-hand clock-hour">
+        <path d="M12 12V8.6" />
       </g>
+      <g className="clock-hand clock-minute">
+        <path d="M12 12V5.8" />
+      </g>
+      <circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none" />
     </svg>
   );
 }

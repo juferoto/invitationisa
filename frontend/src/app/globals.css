@@ -152,6 +152,21 @@ body {
 .anim-spin {
   animation: icon-spin 7s linear infinite;
 }
+
+/* Manecillas del reloj. Aquí el origen va en coordenadas del viewBox
+   (`view-box`) y no de la caja del trazo (`fill-box`): una manecilla es un
+   segmento fino cuyo centro propio no coincide con el centro de la esfera.
+   La horaria da una vuelta por cada doce de la minutera, como un reloj real. */
+.clock-hand {
+  transform-box: view-box;
+  transform-origin: 12px 12px;
+}
+.clock-minute {
+  animation: icon-spin 6s linear infinite;
+}
+.clock-hour {
+  animation: icon-spin 72s linear infinite;
+}
 .anim-sway {
   animation: icon-sway 3.2s ease-in-out infinite;
   transform-origin: top center;

@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/skip2/go-qrcode"
+
 	"github.com/juanrodriguez/invitationisa/backend/internal/auth"
 	"github.com/juanrodriguez/invitationisa/backend/internal/storage"
 	"github.com/juanrodriguez/invitationisa/backend/internal/store"
@@ -428,6 +430,68 @@ func (s *Server) handleListSongs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, songs)
+}
+
+// handleGuestQR devuelve el enlace del invitado como código QR en PNG.
+//
+// Se genera aquí y no con un servicio externo a propósito: el enlace lleva el
+// token que da acceso a la invitación de esa persona, y mandarlo a un tercero
+// para que dibuje la imagen sería filtrarlo.
+func (s *Server) handleGuestQR(w http.ResponseWriter, r *http.Request) {
+	ev, ok := s.currentEvent(w)
+	if !ok {
+		return
+	}
+	id, err := pathID(r, "id")
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "id inválido")
+		return
+	}
+	guest, err := s.store.GuestByID(id)
+	if err != nil || guest.EventID != ev.ID {
+		writeError(w, http.StatusNotFound, "invitado no encontrado")
+		return
+	}
+
+	size := 640
+	if v := r.URL.Query().Get("size"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n >= 128 && n <= 2048 {
+			size = n
+		}
+	}
+
+	link := strings.TrimRight(s.cfg.PublicURL, "/") + "/i/" + guest.Token
+	// Corrección media: tolera que el código se imprima o se fotografíe sin
+	// hacer la imagen mucho más densa.
+	png, err := qrcode.Encode(link, qrcode.Medium, size)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	w.Header().Set("Content-Type", "image/png")
+	w.Header().Set("Content-Disposition", `inline; filename="`+qrFileName(guest.Name)+`"`)
+	w.Header().Set("Cache-Control", "no-store")
+	_, _ = w.Write(png)
+}
+
+// qrFileName arma un nombre de archivo legible a partir del nombre del
+// invitado, sin acentos ni caracteres que compliquen en otros sistemas.
+func qrFileName(name string) string {
+	var b strings.Builder
+	for _, r := range strings.ToLower(name) {
+		switch {
+		case r >= 'a' && r <= 'z', r >= '0' && r <= '9':
+			b.WriteRune(r)
+		case r == ' ' || r == '-' || r == '_':
+			b.WriteRune('-')
+		}
+	}
+	slug := strings.Trim(b.String(), "-")
+	if slug == "" {
+		slug = "invitado"
+	}
+	return "qr-" + slug + ".png"
 }
 
 // --- Exportaciones ---

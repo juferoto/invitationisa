@@ -61,6 +61,7 @@ func (s *Server) Router() http.Handler {
 			r.Post("/guests", s.handleCreateGuest)
 			r.Post("/guests/import", s.handleImportGuests)
 			r.Get("/guests/export", s.handleExportGuests)
+			r.Get("/guests/{id}/qr", s.handleGuestQR)
 			r.Put("/guests/{id}", s.handleUpdateGuest)
 			r.Delete("/guests/{id}", s.handleDeleteGuest)
 

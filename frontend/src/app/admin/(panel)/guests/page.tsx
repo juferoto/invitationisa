@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import QrDialog from "@/components/admin/QrDialog";
 import { apiFetch, downloadFile } from "@/lib/api";
 import { useAuthed } from "@/lib/useAuthed";
 import type { Guest } from "@/lib/types";
@@ -12,6 +13,7 @@ export default function GuestsPage() {
   const { data, error, loading, reload, setError } = useAuthed(load);
   const [form, setForm] = useState(EMPTY);
   const [copied, setCopied] = useState<number | null>(null);
+  const [qrGuest, setQrGuest] = useState<Guest | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   async function create(e: React.FormEvent) {
@@ -193,6 +195,12 @@ export default function GuestsPage() {
                     >
                       {copied === guest.id ? "¡Copiado!" : "Copiar"}
                     </button>
+                    <button
+                      onClick={() => setQrGuest(guest)}
+                      className="rounded border border-black/15 px-2 py-1 text-xs"
+                    >
+                      QR
+                    </button>
                     {guest.phone && (
                       <a
                         href={whatsappLink(guest)}
@@ -218,6 +226,8 @@ export default function GuestsPage() {
           </tbody>
         </table>
       </div>
+
+      {qrGuest && <QrDialog guest={qrGuest} onClose={() => setQrGuest(null)} />}
     </>
   );
 }

@@ -369,7 +369,7 @@ export default async function InvitationPage({ params }: Props) {
                     misma altura aunque un texto ocupe dos líneas. */}
                 <div className="grid items-center gap-6 sm:grid-cols-3">
                   <div className="order-2 flex flex-col justify-center sm:order-1 sm:min-h-32">
-                    <h3 className="font-display text-xl tracking-[0.05em] text-[var(--event-accent)]">
+                    <h3 className="font-display text-xl tracking-[0.05em] text-[var(--event-primary)]">
                       Mujeres
                     </h3>
                     <p className="mt-1 font-display text-2xl">
@@ -386,7 +386,7 @@ export default async function InvitationPage({ params }: Props) {
                   />
 
                   <div className="order-3 flex flex-col justify-center sm:min-h-32">
-                    <h3 className="font-display text-xl tracking-[0.05em] text-[var(--event-accent)]">
+                    <h3 className="font-display text-xl tracking-[0.05em] text-[var(--event-primary)]">
                       Hombres
                     </h3>
                     <p className="mt-1 font-display text-2xl">

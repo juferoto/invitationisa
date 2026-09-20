@@ -11,48 +11,6 @@ export type EventPayload = {
   details: PartyDetail[];
 };
 
-// Campos del evento que son texto libre, en el orden en que se editan.
-const FIELDS: { key: keyof Event; label: string; multiline?: boolean }[] = [
-  { key: "celebrantName", label: "Nombre de la quinceañera" },
-  { key: "title", label: "Título (ej. Mis XV Años)" },
-  { key: "introMessage", label: "Mensaje de bienvenida", multiline: true },
-  {
-    key: "blessing",
-    label: "Línea de entrada (antes de padres y padrinos)",
-    multiline: true,
-  },
-  { key: "parents", label: "Padres (uno por línea)", multiline: true },
-  { key: "godparents", label: "Padrinos (uno por línea)", multiline: true },
-  {
-    key: "dressCodeStyle",
-    label: "Forma de vestir (formal, casual, hawaiana…)",
-  },
-  { key: "dressCodeWomen", label: "Mujeres (ej. vestido largo)" },
-  { key: "dressCodeMen", label: "Hombres (ej. traje formal)" },
-  { key: "dressCode", label: "Nota adicional de vestuario", multiline: true },
-  { key: "reservedColors", label: "Colores reservados (separados por coma)" },
-  { key: "giftMessage", label: "Mensaje de regalos", multiline: true },
-  { key: "shareTitle", label: "Galería compartida: título" },
-  {
-    key: "shareMessage",
-    label: "Galería compartida: mensaje",
-    multiline: true,
-  },
-  {
-    key: "shareUploadUrl",
-    label: 'Galería compartida: enlace de "Subir fotos"',
-  },
-  { key: "hashtagLabel", label: "Texto antes del hashtag" },
-  { key: "hashtag", label: "Hashtag" },
-  { key: "closingTitle", label: "Despedida: título" },
-  {
-    key: "closingMessage",
-    label: "Despedida: mensaje",
-    multiline: true,
-  },
-  { key: "closingSignoff", label: "Despedida: remate (ej. ¡Te espero!)" },
-];
-
 // Iconos propios disponibles. El campo acepta además cualquier código de
 // Lordicon (8 letras), que se copia desde lordicon.com en Export → Embed.
 const ICON_NAMES = [
@@ -98,6 +56,128 @@ function IconField({
     </>
   );
 }
+
+type FieldType = "text" | "multiline" | "datetime" | "color" | "icon";
+
+type Field = {
+  key: keyof Event;
+  label: string;
+  type?: FieldType;
+  wide?: boolean;
+};
+
+/**
+ * Los campos se agrupan en bloques con el mismo nombre y el mismo orden que
+ * las secciones de la invitación, para que quien edite sepa qué está tocando
+ * sin tener que abrir la página y compararla.
+ */
+const GROUPS: { title: string; help: string; fields: Field[] }[] = [
+  {
+    title: "Portada del sobre",
+    help: "Lo que se lee sobre la solapa antes de abrir la invitación.",
+    fields: [
+      { key: "celebrantName", label: "Nombre de la quinceañera" },
+      { key: "title", label: "Título (ej. Mis XV Años)" },
+    ],
+  },
+  {
+    title: "Bienvenida",
+    help: "Las dos primeras secciones al abrir el sobre.",
+    fields: [
+      {
+        key: "introMessage",
+        label: "Mensaje de bienvenida (va entre comillas)",
+        type: "multiline",
+        wide: true,
+      },
+      {
+        key: "blessing",
+        label: "Línea de entrada, antes de padres y padrinos",
+        type: "multiline",
+        wide: true,
+      },
+    ],
+  },
+  {
+    title: "Padres y padrinos",
+    help: "Un nombre por línea. Si lo dejas vacío, la sección no aparece.",
+    fields: [
+      { key: "parents", label: "Padres", type: "multiline" },
+      { key: "godparents", label: "Padrinos", type: "multiline" },
+    ],
+  },
+  {
+    title: "Fecha del evento",
+    help: "Alimenta la cuenta regresiva y el plazo para confirmar.",
+    fields: [
+      { key: "eventDate", label: "Fecha y hora del evento", type: "datetime" },
+      { key: "rsvpDeadline", label: "Límite para confirmar", type: "datetime" },
+      { key: "dateIcon", label: "Icono de la sección", type: "icon" },
+    ],
+  },
+  {
+    title: "Código de vestuario",
+    help: "La forma arriba, y debajo qué se espera de cada quien.",
+    fields: [
+      {
+        key: "dressCodeStyle",
+        label: "Forma de vestir (formal, casual, hawaiana…)",
+      },
+      { key: "dressCodeWomen", label: "Mujeres (ej. vestido largo)" },
+      { key: "dressCodeMen", label: "Hombres (ej. traje formal)" },
+      {
+        key: "reservedColors",
+        label: "Colores reservados (separados por coma)",
+      },
+      {
+        key: "dressCode",
+        label: "Nota adicional",
+        type: "multiline",
+        wide: true,
+      },
+    ],
+  },
+  {
+    title: "Lluvia de sobres",
+    help: "La sección de regalos.",
+    fields: [
+      { key: "giftMessage", label: "Mensaje", type: "multiline", wide: true },
+    ],
+  },
+  {
+    title: "Galería compartida",
+    help: "Invita a los asistentes a subir sus fotos y a usar el hashtag.",
+    fields: [
+      { key: "shareTitle", label: "Título (ej. ¡Vive mis XV conmigo!)" },
+      { key: "shareUploadUrl", label: 'Enlace del botón "Subir fotos"' },
+      { key: "shareMessage", label: "Mensaje", type: "multiline", wide: true },
+      { key: "hashtagLabel", label: "Texto antes del hashtag" },
+      { key: "hashtag", label: "Hashtag" },
+    ],
+  },
+  {
+    title: "Despedida",
+    help: "El cierre de la invitación, al pie de todo.",
+    fields: [
+      { key: "closingTitle", label: "Título" },
+      { key: "closingSignoff", label: "Remate (ej. ¡Te espero!)" },
+      {
+        key: "closingMessage",
+        label: "Mensaje",
+        type: "multiline",
+        wide: true,
+      },
+    ],
+  },
+  {
+    title: "Apariencia",
+    help: "Los dos colores de los que sale toda la paleta de la invitación.",
+    fields: [
+      { key: "themePrimary", label: "Color principal", type: "color" },
+      { key: "themeAccent", label: "Color de acento", type: "color" },
+    ],
+  },
+];
 
 const VENUE_PLACEHOLDER = {
   name: "Lugar",
@@ -167,95 +247,71 @@ export default function EventForm({ initial }: { initial: EventPayload }) {
         Evento
       </h1>
 
-      <section className="mt-6 grid gap-4 sm:grid-cols-2">
-        {FIELDS.map((field) => (
-          <label
-            key={field.key}
-            className={field.multiline ? "sm:col-span-2" : undefined}
-          >
-            <span className="text-sm text-[var(--color-muted)]">
-              {field.label}
-            </span>
-            {field.multiline ? (
-              <textarea
-                rows={2}
-                value={String(event[field.key] ?? "")}
-                onChange={(e) => set(field.key, e.target.value)}
-                className="mt-1 w-full rounded-md border border-black/15 px-3 py-2"
-              />
-            ) : (
-              <input
-                value={String(event[field.key] ?? "")}
-                onChange={(e) => set(field.key, e.target.value)}
-                className="mt-1 w-full rounded-md border border-black/15 px-3 py-2"
-              />
-            )}
-          </label>
-        ))}
-
-        <label>
-          <span className="text-sm text-[var(--color-muted)]">
-            Fecha y hora del evento
-          </span>
-          <input
-            type="datetime-local"
-            value={toLocalInput(event.eventDate)}
-            onChange={(e) => set("eventDate", fromLocalInput(e.target.value))}
-            className="mt-1 w-full rounded-md border border-black/15 px-3 py-2"
-          />
-        </label>
-        <label>
-          <span className="text-sm text-[var(--color-muted)]">
-            Icono de la fecha del evento
-          </span>
-          <div className="mt-1 grid">
-            <IconField
-              value={event.dateIcon}
-              onChange={(dateIcon) =>
-                setEvent((prev) => ({ ...prev, dateIcon }))
-              }
-            />
+      {GROUPS.map((group) => (
+        <section key={group.title} className="mt-10">
+          <h2 className="font-display text-2xl">{group.title}</h2>
+          <p className="mt-1 text-sm text-[var(--color-muted)]">{group.help}</p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            {group.fields.map((field) => (
+              <label
+                key={field.key}
+                className={field.wide ? "sm:col-span-2" : undefined}
+              >
+                <span className="text-sm text-[var(--color-muted)]">
+                  {field.label}
+                </span>
+                {field.type === "multiline" && (
+                  <textarea
+                    rows={2}
+                    value={String(event[field.key] ?? "")}
+                    onChange={(e) => set(field.key, e.target.value)}
+                    className="mt-1 w-full rounded-md border border-black/15 px-3 py-2"
+                  />
+                )}
+                {field.type === "datetime" && (
+                  <input
+                    type="datetime-local"
+                    value={toLocalInput(String(event[field.key] ?? ""))}
+                    onChange={(e) =>
+                      set(field.key, fromLocalInput(e.target.value))
+                    }
+                    className="mt-1 w-full rounded-md border border-black/15 px-3 py-2"
+                  />
+                )}
+                {field.type === "color" && (
+                  <input
+                    type="color"
+                    value={String(event[field.key] ?? "#000000")}
+                    onChange={(e) => set(field.key, e.target.value)}
+                    className="mt-1 h-10 w-full rounded-md border border-black/15"
+                  />
+                )}
+                {field.type === "icon" && (
+                  <div className="mt-1 grid">
+                    <IconField
+                      value={String(event[field.key] ?? "")}
+                      onChange={(value) => set(field.key, value)}
+                    />
+                  </div>
+                )}
+                {!field.type && (
+                  <input
+                    value={String(event[field.key] ?? "")}
+                    onChange={(e) => set(field.key, e.target.value)}
+                    className="mt-1 w-full rounded-md border border-black/15 px-3 py-2"
+                  />
+                )}
+              </label>
+            ))}
           </div>
-        </label>
-        <label>
-          <span className="text-sm text-[var(--color-muted)]">
-            Límite para confirmar
-          </span>
-          <input
-            type="datetime-local"
-            value={toLocalInput(event.rsvpDeadline)}
-            onChange={(e) =>
-              set("rsvpDeadline", fromLocalInput(e.target.value))
-            }
-            className="mt-1 w-full rounded-md border border-black/15 px-3 py-2"
-          />
-        </label>
-        <label>
-          <span className="text-sm text-[var(--color-muted)]">
-            Color principal
-          </span>
-          <input
-            type="color"
-            value={event.themePrimary}
-            onChange={(e) => set("themePrimary", e.target.value)}
-            className="mt-1 h-10 w-full rounded-md border border-black/15"
-          />
-        </label>
-        <label>
-          <span className="text-sm text-[var(--color-muted)]">
-            Color de acento
-          </span>
-          <input
-            type="color"
-            value={event.themeAccent}
-            onChange={(e) => set("themeAccent", e.target.value)}
-            className="mt-1 h-10 w-full rounded-md border border-black/15"
-          />
-        </label>
-      </section>
+        </section>
+      ))}
 
       <section className="mt-10">
         <h2 className="font-display text-2xl">Lugares</h2>
+        <p className="mt-1 text-sm text-[var(--color-muted)]">
+          Ceremonia y recepción. Cada uno muestra sus datos y un mapa.
+        </p>
         {venues.map((venue, i) => (
           <div key={i} className="mt-3 grid gap-2 sm:grid-cols-6">
             <select
@@ -324,6 +380,9 @@ export default function EventForm({ initial }: { initial: EventPayload }) {
 
       <section className="mt-10">
         <h2 className="font-display text-2xl">Itinerario</h2>
+        <p className="mt-1 text-sm text-[var(--color-muted)]">
+          La línea de tiempo del evento. Si está vacío, la sección no aparece.
+        </p>
         {itinerary.map((item, i) => (
           <div key={i} className="mt-3 grid gap-2 sm:grid-cols-4">
             <input

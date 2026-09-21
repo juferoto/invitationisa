@@ -1,39 +1,32 @@
-# Configuración de despliegue en Fly.io.
+# fly.toml app configuration file generated for invitationisa on 2026-09-21T20:10:15Z
 #
-# Una sola máquina a propósito: SQLite vive en un volumen que no se puede
-# compartir entre instancias. Si algún día hace falta escalar, primero hay que
-# mover la base a Postgres.
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
 
-app = "invitacion-api"
-primary_region = "iad" # Ashburn, Virginia: el salto más corto desde Colombia
+app = 'invitationisa'
+primary_region = 'iad'
 
 [build]
-dockerfile = "./Dockerfile"
+  dockerfile = './Dockerfile'
 
 [env]
-ADDR = ":8080"
-# La base y los medios viven en el volumen, no en la imagen: el contenedor se
-# reemplaza en cada despliegue y todo lo que esté fuera del volumen se pierde.
-DATABASE_DSN = "file:/data/invitation.db?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)&_pragma=foreign_keys(1)"
-STORAGE_DRIVER = "local"
-STORAGE_LOCAL_DIR = "/data/media"
-# El panel y la API quedan en dominios distintos, así que la cookie necesita
-# SameSite=None. Con un dominio propio para ambos, cámbialo a "lax".
-COOKIE_SAMESITE = "none"
+  ADDR = ':8080'
+  COOKIE_SAMESITE = 'none'
+  DATABASE_DSN = 'file:/data/invitation.db?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)&_pragma=foreign_keys(1)'
+  STORAGE_DRIVER = 'local'
+  STORAGE_LOCAL_DIR = '/data/media'
 
 [[mounts]]
-source = "datos"
-destination = "/data"
+  source = 'datos'
+  destination = '/data'
 
 [http_service]
-internal_port = 8080
-force_https = true
-auto_stop_machines = "suspend"
-auto_start_machines = true
-# Sin mínimo la máquina se apaga y la primera visita espera el arranque. Para
-# una invitación que se abre desde WhatsApp, esa espera se nota.
-min_machines_running = 1
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = 'suspend'
+  auto_start_machines = true
+  min_machines_running = 1
 
 [[vm]]
-size = "shared-cpu-1x"
-memory = "512mb"
+  size = 'shared-cpu-1x'
+  memory = '512mb'

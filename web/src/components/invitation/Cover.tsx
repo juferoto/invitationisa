@@ -256,18 +256,10 @@ export default function Cover({
                       sizes="(max-width: 1024px) 80vw, 40vw"
                       className="object-cover"
                     />
-                    {/* El difuminado crece de arriba hacia abajo: la máscara
-                        deja el tope nítido y va cubriendo hacia el pie. */}
-                    <div
-                      className="absolute inset-0 backdrop-blur-md"
-                      style={{
-                        maskImage:
-                          "linear-gradient(to bottom, transparent 0%, black 55%)",
-                        WebkitMaskImage:
-                          "linear-gradient(to bottom, transparent 0%, black 55%)",
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/10 to-black/35" />
+                    {/* Sin difuminado: la foto se ve nítida de arriba abajo.
+                        Solo queda una sombra suave al pie, que es lo que
+                        despega el sobre de la imagen. */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/25" />
                   </div>
                 ) : (
                   <div className="mx-auto aspect-[3/4] w-full rounded-sm bg-gradient-to-b from-[var(--event-primary)]/15 to-[var(--event-primary)]/40" />

@@ -158,6 +158,7 @@ Fly reinicia la máquina al cambiar secretos. Espera unos segundos y entra a
 | `Volume not found` | El volumen está en otra región | Créalo en la misma del `primary_region` |
 | El login funciona pero el panel da 401 | La cookie no viaja entre dominios | `COOKIE_SAMESITE=none` y HTTPS en ambos |
 | Las fotos dan 400 | Falta autorizar el dominio | Define `NEXT_PUBLIC_MEDIA_HOST` en Vercel |
+| "Failed to fetch" con todo bien configurado | La máquina estaba suspendida y el navegador abortó | `auto_stop_machines = false` en `fly.toml` |
 
 Si `fly launch` falló a mitad, la aplicación ya quedó creada en Fly. **No
 repitas `fly launch`**: continúa con `fly deploy`.

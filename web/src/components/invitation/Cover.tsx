@@ -279,9 +279,10 @@ export default function Cover({
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.2 }}
                   aria-label="Ver invitación"
-                  // Por debajo del centro a propósito: deja despejado el tercio
-                  // superior de la foto, que es donde queda el rostro.
-                  className="group absolute inset-x-0 top-[60%] mx-auto w-[72%] -translate-y-1/2 cursor-pointer"
+                  // Muy por debajo del centro a propósito: deja despejada la
+                  // mitad superior de la foto, que es donde queda el rostro.
+                  // Al 75% el sobre sigue apoyado por completo sobre la imagen.
+                  className="group absolute inset-x-0 top-[75%] mx-auto w-[72%] -translate-y-1/2 cursor-pointer"
                 >
                   {/* Flotación suave para que el sobre se sienta vivo. */}
                   <motion.div

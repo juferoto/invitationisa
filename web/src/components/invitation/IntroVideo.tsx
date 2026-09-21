@@ -107,6 +107,28 @@ export default function IntroVideo({
     void video.play().catch(() => {});
   }
 
+  /**
+   * En cuanto el invitado toca algo —donde sea, y valga para lo que valga—
+   * el navegador concede el permiso que faltaba, así que el sonido entra sin
+   * esperar a que encuentre el aviso. Solo está armado mientras el video va
+   * en silencio.
+   */
+  useEffect(() => {
+    if (!src || !muted || finished) return;
+    const listeners = new AbortController();
+    const options = { capture: true, signal: listeners.signal };
+    const onActivation = () => {
+      listeners.abort();
+      enableSound();
+    };
+    document.addEventListener("pointerdown", onActivation, options);
+    document.addEventListener("touchstart", onActivation, options);
+    document.addEventListener("keydown", onActivation, options);
+    return () => listeners.abort();
+    // `enableSound` no entra: se recrea en cada render y volvería a armar los
+    // oyentes sin necesidad.
+  }, [src, muted, finished]);
+
   // Mientras el video ocupa la pantalla no queremos scroll detrás.
   useEffect(() => {
     if (finished) return;

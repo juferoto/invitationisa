@@ -11,7 +11,7 @@ primary_region = 'dfw'
 
 [env]
   ADDR = ':8080'
-  COOKIE_SAMESITE = 'none'
+  COOKIE_SAMESITE = 'lax'
   DATABASE_DSN = 'file:/data/invitation.db?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)&_pragma=foreign_keys(1)'
   STORAGE_DRIVER = 'local'
   STORAGE_LOCAL_DIR = '/data/media'

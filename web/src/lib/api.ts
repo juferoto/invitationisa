@@ -1,10 +1,20 @@
 import type { Invitation } from "./types";
 
-// En el navegador usamos la URL pública; en el servidor podemos ir directo al
-// contenedor del backend, que suele ser más rápido y no sale a internet.
-export const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
-const SERVER_API_URL = process.env.INTERNAL_API_URL ?? API_URL;
+/**
+ * En el navegador, vacío: las llamadas van a rutas relativas y Next las
+ * reenvía a la API (ver `rewrites` en next.config.ts). Así el navegador solo
+ * habla con su propio dominio y la cookie de sesión es de primera parte, que
+ * es lo que Safari en iOS exige.
+ */
+export const API_URL = "";
+
+// En el servidor vamos directo a la API: un salto menos y sin el límite de
+// tamaño del proxy.
+const SERVER_API_URL = (
+  process.env.INTERNAL_API_URL ??
+  process.env.NEXT_PUBLIC_API_URL ??
+  "http://localhost:8080"
+).replace(/\/$/, "");
 
 export class ApiError extends Error {
   constructor(

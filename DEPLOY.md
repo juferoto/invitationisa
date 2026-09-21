@@ -195,6 +195,30 @@ Si el login funciona pero el panel da 401 en todo, es la cookie: revisa que
 
 ---
 
+## Por qué la API se llama por rutas relativas
+
+El navegador nunca habla con el dominio de la API: Next reenvía `/api/*` desde
+su servidor (ver `rewrites` en `next.config.ts`).
+
+Sin eso, la cookie de sesión la emite el dominio de la API mientras navegas por
+el de Vercel, o sea una **cookie de terceros**. Safari en iOS las bloquea por
+completo, así que el panel devuelve al login en cada petición; en el escritorio
+funciona porque Chrome todavía no las bloquea del todo.
+
+Con el reenvío la cookie pasa a ser de primera parte y `COOKIE_SAMESITE` puede
+volver a `lax`, que es más estricto frente a CSRF.
+
+**El límite:** el proxy de Vercel no acepta cuerpos de más de **4,5 MB**. Un
+archivo mayor hay que subirlo con la API apuntada directamente, o recomprimirlo.
+Para audio, macOS convierte sin instalar nada:
+
+```bash
+afconvert -f m4af -d aac -b 96000 -q 127 -s 2 cancion.mp3 cancion.m4a
+```
+
+96 kbps en AAC suena igual que 256 kbps en MP3 por el altavoz de un teléfono,
+y pesa la tercera parte.
+
 ## Sobre los dominios y la cookie
 
 Con `TU-APP.vercel.app` y `TU-API.fly.dev` el navegador ve **dos sitios

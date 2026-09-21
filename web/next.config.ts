@@ -6,7 +6,33 @@ const isDev = process.env.NODE_ENV !== "production";
 // su CDN). En desarrollo los sirve el propio backend en localhost:8080.
 const mediaHost = process.env.NEXT_PUBLIC_MEDIA_HOST;
 
+// Origen real de la API. Solo se usa en el servidor, para el reenvío.
+const apiOrigin = (
+  process.env.INTERNAL_API_URL ??
+  process.env.NEXT_PUBLIC_API_URL ??
+  "http://localhost:8080"
+).replace(/\/$/, "");
+
 const nextConfig: NextConfig = {
+  /**
+   * Reenvía /api/* a la API desde el servidor de Next.
+   *
+   * Sin esto el navegador habla directamente con el dominio de la API, y la
+   * cookie de sesión resulta ser de terceros: Safari en iOS la bloquea y el
+   * panel devuelve al login en cada petición. Al pasar por aquí, el navegador
+   * solo ve su propio dominio y la cookie es de primera parte.
+   *
+   * El límite: el proxy de Vercel no acepta cuerpos de más de 4,5 MB, así que
+   * los archivos grandes hay que subirlos con la API apuntada directamente.
+   */
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${apiOrigin}/api/:path*`,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       ...(isDev

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useIntroFinished } from "./IntroVideo";
 
 /**
  * Tamaño de fuente en unidades del propio sobre (1cqw = 1% de su ancho).
@@ -66,47 +67,107 @@ export default function Cover({
   guestName: string;
   passes: number;
   coverUrl?: string;
-  /** Canción de fondo; arranca al abrir el sobre. */
+  /** Canción de fondo; arranca al aparecer la portada. */
   musicSrc?: string;
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
+  const introFinished = useIntroFinished();
+  // Distingue la música que alguien pidió de la que solo estamos probando
+  // para desbloquear el elemento.
+  const wantedRef = useRef(false);
+
+  function playMusic() {
+    const audio = audioRef.current;
+    if (!audio) return;
+    wantedRef.current = true;
+    audio.muted = false;
+    audio.play().catch(() => {
+      // Si el navegador la rechaza, el botón flotante y el propio sobre
+      // dejan arrancarla a mano.
+      setPlaying(false);
+    });
+  }
 
   /**
-   * El audio se lanza aquí, dentro del manejador del clic. Los navegadores
-   * bloquean la reproducción con sonido salvo que la dispare un gesto del
-   * usuario, y abrir el sobre lo es; hacerlo en un efecto posterior sería
-   * menos fiable.
+   * Abrir el sobre es un gesto del usuario, así que aquí la reproducción
+   * siempre se concede. Es la red de seguridad por si la música no pudo
+   * entrar sola con la portada.
    */
   function openInvitation() {
     setOpen(true);
-    const audio = audioRef.current;
-    if (!audio) return;
-    audio.play().catch(() => {
-      // Si el navegador la rechaza igualmente, el botón flotante deja
-      // arrancarla a mano.
-      setPlaying(false);
-    });
+    playMusic();
   }
 
   function toggleMusic() {
     const audio = audioRef.current;
     if (!audio) return;
     if (audio.paused) {
-      void audio.play().catch(() => setPlaying(false));
+      playMusic();
     } else {
+      wantedRef.current = false;
       audio.pause();
     }
   }
+
+  /**
+   * iOS solo deja reproducir un elemento de audio que ya se haya lanzado
+   * dentro de un gesto del invitado. Al primer toque en cualquier parte —el
+   * botón de sonido del video, "Saltar", el propio video— lo lanzamos en
+   * silencio y lo devolvemos al inicio: queda autorizado para cuando la
+   * portada pida la música por su cuenta.
+   */
+  useEffect(() => {
+    if (!musicSrc) return;
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    // Un solo `abort` retira los dos oyentes, tanto al desbloquear como al
+    // desmontar el componente.
+    const listeners = new AbortController();
+    const options = { capture: true, signal: listeners.signal };
+
+    const unlock = () => {
+      listeners.abort();
+      if (!audio.paused) return; // ya suena: no hay nada que desbloquear
+      audio.muted = true;
+      audio
+        .play()
+        .then(() => {
+          audio.muted = false;
+          if (wantedRef.current) return; // ya la quieren sonando: se deja
+          audio.pause();
+          audio.currentTime = 0;
+        })
+        .catch(() => {
+          audio.muted = false;
+        });
+    };
+    document.addEventListener("pointerdown", unlock, options);
+    document.addEventListener("keydown", unlock, options);
+    return () => listeners.abort();
+  }, [musicSrc]);
+
+  // La música entra con la portada, no al abrir el sobre. Si el navegador la
+  // rechaza por no venir de un gesto, no pasa nada: el clic en el sobre la
+  // arranca igual.
+  useEffect(() => {
+    if (!introFinished || !musicSrc) return;
+    playMusic();
+    // Solo cuando termina el video: volver a lanzarla en cada render la
+    // reiniciaría bajo los pies del invitado.
+  }, [introFinished, musicSrc]);
 
   // El estado del botón sigue al audio real, no al revés: así queda correcto
   // aunque el sistema operativo pause la reproducción por su cuenta.
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    const onPlay = () => setPlaying(true);
+    // Silenciado no cuenta como sonando: es el arranque con el que
+    // desbloqueamos el elemento, y el botón no debería parpadear por eso.
+    const onPlay = () => setPlaying(!audio.muted);
     const onPause = () => setPlaying(false);
     audio.addEventListener("play", onPlay);
     audio.addEventListener("pause", onPause);
@@ -132,11 +193,13 @@ export default function Cover({
           gesto. `loop` hace que se repita indefinidamente. */}
       {musicSrc && <audio ref={audioRef} src={musicSrc} loop preload="auto" />}
 
-      {open && musicSrc && (
+      {/* Ya en la portada, porque la música puede estar sonando desde ahí.
+          `z-[55]` la deja sobre la portada (z-50) y bajo el video (z-60). */}
+      {musicSrc && (open || playing) && (
         <button
           onClick={toggleMusic}
           aria-label={playing ? "Pausar la música" : "Reproducir la música"}
-          className="fixed bottom-5 right-5 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--event-primary)] text-white shadow-lg"
+          className="fixed bottom-5 right-5 z-[55] flex h-12 w-12 items-center justify-center rounded-full bg-[var(--event-primary)] text-white shadow-lg"
         >
           {playing ? "❚❚" : "♪"}
         </button>

@@ -172,6 +172,15 @@ desarrollo. En producción los medios salen de un dominio público
 Si cambias `next.config.ts` tienes que reiniciar `npm run dev`: la configuración
 no se recarga en caliente.
 
+**El video entra sin sonido, o la música no arranca sola.** No es un fallo: los
+navegadores solo dejan reproducir con sonido cuando el invitado ya tocó la
+página. El video lo intenta primero con audio y, si se lo rechazan, sigue en
+silencio con un botón «Sonido» a la izquierda. La música se lanza al aparecer
+la portada del sobre; si tampoco la dejan, entra al tocar «Ver invitación»,
+que ya es un gesto del usuario. Para que ese salto sea posible, el primer
+toque en cualquier parte desbloquea el elemento de audio en silencio: sin eso
+Safari en iOS no permitiría reproducirlo más tarde.
+
 ## Pendientes conocidos
 
 - El panel no tiene edición en línea de invitados: hay `PUT /guests/{id}` en la

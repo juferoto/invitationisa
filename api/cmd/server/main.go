@@ -15,11 +15,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/juanrodriguez/invitationisa/backend/internal/api"
-	"github.com/juanrodriguez/invitationisa/backend/internal/auth"
-	"github.com/juanrodriguez/invitationisa/backend/internal/config"
-	"github.com/juanrodriguez/invitationisa/backend/internal/storage"
-	"github.com/juanrodriguez/invitationisa/backend/internal/store"
+	"github.com/juanrodriguez/invitationisa/api/internal/api"
+	"github.com/juanrodriguez/invitationisa/api/internal/auth"
+	"github.com/juanrodriguez/invitationisa/api/internal/config"
+	"github.com/juanrodriguez/invitationisa/api/internal/storage"
+	"github.com/juanrodriguez/invitationisa/api/internal/store"
 )
 
 func main() {

@@ -11,9 +11,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
-	"github.com/juanrodriguez/invitationisa/backend/internal/config"
-	"github.com/juanrodriguez/invitationisa/backend/internal/storage"
-	"github.com/juanrodriguez/invitationisa/backend/internal/store"
+	"github.com/juanrodriguez/invitationisa/api/internal/config"
+	"github.com/juanrodriguez/invitationisa/api/internal/storage"
+	"github.com/juanrodriguez/invitationisa/api/internal/store"
 )
 
 type Server struct {

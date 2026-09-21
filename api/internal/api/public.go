@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/juanrodriguez/invitationisa/backend/internal/store"
+	"github.com/juanrodriguez/invitationisa/api/internal/store"
 )
 
 // invitationResponse es todo lo que la página pública necesita en una sola llamada.

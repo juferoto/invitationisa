@@ -1,8 +1,8 @@
 node_modules/
 .next/
 out/
-backend/data/
-backend/server
+api/data/
+api/server
 *.db
 *.db-shm
 *.db-wal
@@ -11,7 +11,7 @@ backend/server
 .DS_Store
 
 # Volcados temporales de pruebas con curl
-/frontend/*.html
+/web/*.html
 
 # La canción se sirve desde el almacén de medios, no desde el repo
-/frontend/cancion.mpeg
+/web/cancion.mpeg

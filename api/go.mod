@@ -1,4 +1,4 @@
-module github.com/juanrodriguez/invitationisa/backend
+module github.com/juanrodriguez/invitationisa/api
 
 go 1.27.1
 

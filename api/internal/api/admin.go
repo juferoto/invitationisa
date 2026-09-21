@@ -13,9 +13,9 @@ import (
 
 	"github.com/skip2/go-qrcode"
 
-	"github.com/juanrodriguez/invitationisa/backend/internal/auth"
-	"github.com/juanrodriguez/invitationisa/backend/internal/storage"
-	"github.com/juanrodriguez/invitationisa/backend/internal/store"
+	"github.com/juanrodriguez/invitationisa/api/internal/auth"
+	"github.com/juanrodriguez/invitationisa/api/internal/storage"
+	"github.com/juanrodriguez/invitationisa/api/internal/store"
 )
 
 type ctxKey string

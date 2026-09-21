@@ -18,11 +18,11 @@ fly auth signup      # o: fly auth login
 
 ### 1.2 Crear la aplicación
 
-Desde `backend/`. El `fly.toml` ya está en el repositorio, así que **no dejes
+Desde `api/`. El `fly.toml` ya está en el repositorio, así que **no dejes
 que lo regenere**:
 
 ```bash
-cd backend
+cd api
 fly launch --no-deploy --copy-config --name TU-API --region iad
 ```
 
@@ -95,7 +95,7 @@ git push -u origin main
 En [vercel.com/new](https://vercel.com/new), elige el repositorio y cambia
 **un ajuste que no viene por defecto**:
 
-- **Root Directory:** `frontend`
+- **Root Directory:** `web`
 
 Sin eso, Vercel busca el `package.json` en la raíz y falla.
 
@@ -117,7 +117,7 @@ Pulsa **Deploy**. Anota la URL: `https://TU-APP.vercel.app`.
 
 ## 3. Conectar los dos
 
-De vuelta en `backend/`:
+De vuelta en `api/`:
 
 ```bash
 fly secrets set \
@@ -194,7 +194,7 @@ subirlos desde el panel, o cópialos del volumen al bucket antes del cambio.
 ## Actualizaciones
 
 - **Frontend:** cada `git push` a `main` despliega solo.
-- **Backend:** `cd backend && fly deploy`.
+- **Backend:** `cd api && fly deploy`.
 
 Las migraciones de la base corren al arrancar, así que no hay paso aparte.
 

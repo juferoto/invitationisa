@@ -4,6 +4,17 @@ Plataforma para administrar una invitación digital de XV años: lista de
 invitados, enlace personalizado por invitado, confirmación de asistencia y
 medios del evento (fotos, música y video).
 
+## Estructura
+
+Dos aplicaciones independientes, cada una con su propio despliegue. Lo único
+que las une son dos variables de entorno, así que cualquiera de las dos puede
+extraerse a su propio repositorio moviendo la carpeta tal cual.
+
+```
+api/   Go + SQLite + almacenamiento de objetos   ->  Fly.io
+web/   Next.js                                   ->  Vercel
+```
+
 ## Stack
 
 | Capa | Elección | Por qué |
@@ -76,12 +87,12 @@ Necesitas Go 1.27+ y Node 20+.
 
 ```bash
 # Terminal 1 — API en :8080
-cd backend
+cd api
 cp .env.example .env        # ajusta SEED_ADMIN_PASSWORD
 go run ./cmd/server
 
 # Terminal 2 — Web en :3000
-cd frontend
+cd web
 npm install
 npm run dev
 ```
@@ -127,7 +138,7 @@ ejemplo.
 
 ## Despliegue
 
-**Backend** — `docker build -t invitaciones-api backend/` produce una imagen
+**Backend** — `docker build -t invitaciones-api api/` produce una imagen
 distroless. En Fly.io o Cloud Run monta un volumen para `data/` (o usa
 Litestream contra R2 si quieres replicación continua).
 

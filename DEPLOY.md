@@ -34,8 +34,15 @@ cd api
 fly launch --no-deploy --copy-config --name TU-API --region iad
 ```
 
-Cambia `TU-API` por un nombre libre. Si lo cambias, actualiza también el campo
-`app` del `fly.toml`.
+Cambia `TU-API` por un nombre libre.
+
+**Si cambias el nombre o la región, actualiza también `fly.toml`.** Y si
+`fly launch` falla a mitad, no llega a escribirlos: `fly deploy` buscaría una
+aplicación que no existe y respondería `app not found`.
+
+```bash
+grep -E '^app|^primary_region' fly.toml
+```
 
 ### 1.3 Crear el volumen
 
@@ -43,7 +50,7 @@ Aquí viven la base de datos y los medios. Sin él, cada despliegue borraría
 todo, porque el contenedor se reemplaza entero.
 
 ```bash
-fly volumes create datos --region iad --size 1
+fly volumes create datos --region iad --size 1   # la MISMA región del fly.toml
 ```
 
 1 GB sobra: la base pesa kilobytes y los medios unos pocos megabytes. Se puede

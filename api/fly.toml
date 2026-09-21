@@ -4,8 +4,8 @@
 # compartir entre instancias. Si algún día hace falta escalar, primero hay que
 # mover la base a Postgres.
 
-app = "invitacion-api"
-primary_region = "iad" # Ashburn, Virginia: el salto más corto desde Colombia
+app = "invitationisa"
+primary_region = "dfw" # Dallas: buena ruta hacia Colombia
 
 [build]
 dockerfile = "Dockerfile"

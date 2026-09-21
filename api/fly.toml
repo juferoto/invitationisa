@@ -8,7 +8,7 @@ app = "invitacion-api"
 primary_region = "iad" # Ashburn, Virginia: el salto más corto desde Colombia
 
 [build]
-dockerfile = "Dockerfile"
+dockerfile = "./api/Dockerfile"
 
 [env]
 ADDR = ":8080"

@@ -172,12 +172,13 @@ desarrollo. En producción los medios salen de un dominio público
 Si cambias `next.config.ts` tienes que reiniciar `npm run dev`: la configuración
 no se recarga en caliente.
 
-**Aparece «Toca para comenzar» antes del video.** Ningún navegador deja
-arrancar un video con sonido sin que el invitado haya tocado la página: Safari
-y Chrome lo bloquean. La invitación lo intenta igual y, cuando se lo niegan,
-deja el video quieto en su primer cuadro tras ese aviso. El toque es el permiso
-que falta, y así el video suena completo desde el principio en vez de empezar
-mudo. Donde el navegador sí lo permite, el aviso ni se ve.
+**El video empieza en silencio y dice «Toca para escuchar».** Ningún navegador
+deja arrancar un video con sonido sin que el invitado haya tocado la página:
+Safari y Chrome lo bloquean. Lo que sí permiten todos es el video mudo, así que
+se reproduce de inmediato y el sonido queda a un toque en cualquier parte de la
+pantalla. Si el toque llega en los primeros seis segundos el video vuelve al
+principio, para que no se pierda nada. Donde el navegador permite el audio
+directamente, el aviso ni se ve.
 
 Ese mismo toque desbloquea la canción: el primer contacto con la página lanza
 el elemento de audio en silencio y lo rebobina, que es la única forma de que

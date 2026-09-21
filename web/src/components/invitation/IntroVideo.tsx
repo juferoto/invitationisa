@@ -50,13 +50,15 @@ function SpeakerIcon({ muted }: { muted: boolean }) {
 }
 
 /**
- * Video de entrada a pantalla completa. Se reproduce solo, cubre todo y al
- * terminar se desvanece para dejar ver la portada del sobre.
+ * Video de entrada a pantalla completa. Cubre todo y al terminar se desvanece
+ * para dejar ver la portada del sobre.
  *
- * Se intenta primero con sonido. Los navegadores solo dejan arrancar así
- * cuando el invitado ya ha interactuado con el sitio, de modo que al ser
- * rechazado se repite en silencio —eso siempre lo aceptan— y se ofrece un
- * botón para activarlo, que sí es un gesto del usuario.
+ * Suena desde el primer cuadro. Ningún navegador permite arrancar un video con
+ * audio por su cuenta —Safari y Chrome lo bloquean mientras el invitado no
+ * haya tocado la página—, así que se intenta igual y, si lo rechazan, el video
+ * espera quieto en su primer cuadro tras un «Toca para comenzar». Ese toque es
+ * el permiso que falta: el video arranca completo, con sonido y desde el
+ * principio, en vez de empezar mudo y pedir que lo activen a mitad de camino.
  */
 export default function IntroVideo({
   src,
@@ -68,7 +70,8 @@ export default function IntroVideo({
   const videoRef = useRef<HTMLVideoElement>(null);
   // Sin video no hay nada que esperar: la portada se muestra de una vez.
   const [finished, setFinished] = useState(!src);
-  const [muted, setMuted] = useState(true);
+  const [started, setStarted] = useState(false);
+  const [muted, setMuted] = useState(false);
 
   useEffect(() => {
     if (!src) return;
@@ -79,15 +82,18 @@ export default function IntroVideo({
     video.muted = false;
     video.play().then(
       () => {
-        if (!cancelled) setMuted(false);
+        // Concedido: el invitado ya había interactuado con el sitio, o el
+        // navegador es de los permisivos. No hace falta pedirle nada.
+        if (!cancelled) setStarted(true);
       },
       () => {
+        // Rechazado. Lo dejamos en el primer cuadro esperando el toque, en
+        // lugar de reproducirlo mudo y que se pierda el audio del principio.
         if (cancelled) return;
-        video.muted = true;
-        setMuted(true);
-        // Si el navegador rechaza incluso el video silenciado, no dejamos al
-        // invitado mirando un cuadro negro: se pasa directo a la portada.
-        video.play().catch(() => setFinished(true));
+        video.pause();
+        // Rebobinar antes de tener metadatos no está permitido; si aún no
+        // llegaron, el video sigue en el primer cuadro de todos modos.
+        if (video.readyState > 0) video.currentTime = 0;
       },
     );
 
@@ -95,6 +101,21 @@ export default function IntroVideo({
       cancelled = true;
     };
   }, [src]);
+
+  function start() {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = false;
+    setMuted(false);
+    setStarted(true);
+    video.play().catch(() => {
+      // Ni con el gesto de por medio. Antes que dejar al invitado mirando un
+      // cuadro negro, va en silencio; el botón de sonido queda ahí.
+      video.muted = true;
+      setMuted(true);
+      video.play().catch(() => setFinished(true));
+    });
+  }
 
   // Mientras el video ocupa la pantalla no queremos scroll detrás.
   useEffect(() => {
@@ -143,17 +164,45 @@ export default function IntroVideo({
               className="absolute inset-0 h-full w-full object-contain"
             />
 
-            <div className="absolute inset-x-0 bottom-[max(1.5rem,env(safe-area-inset-bottom))] z-10 flex items-center justify-between px-6">
+            {/* Toda la pantalla es el botón: no hay que apuntar a nada. */}
+            {!started && (
               <button
-                onClick={toggleSound}
-                aria-label={muted ? "Activar el sonido" : "Silenciar el video"}
-                className="flex items-center gap-2 rounded-full border border-white/40 bg-black/30 px-4 py-2 text-xs uppercase tracking-[0.1em] text-white backdrop-blur"
+                onClick={start}
+                className="absolute inset-0 z-[5] flex flex-col items-center justify-center gap-5 bg-black/55 text-white backdrop-blur-[2px]"
               >
-                <SpeakerIcon muted={muted} />
-                {/* Con el sonido puesto basta el icono; apagado conviene
-                    decirlo, que es lo que el invitado querrá tocar. */}
-                {muted && "Sonido"}
+                <span className="flex h-20 w-20 items-center justify-center rounded-full border border-[var(--event-accent)] text-[var(--event-accent)]">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="ml-1 h-8 w-8"
+                    aria-hidden="true"
+                  >
+                    <path d="M8 5.5 19 12 8 18.5z" />
+                  </svg>
+                </span>
+                <span className="text-xs uppercase tracking-[0.2em]">
+                  Toca para comenzar
+                </span>
               </button>
+            )}
+
+            <div className="absolute inset-x-0 bottom-[max(1.5rem,env(safe-area-inset-bottom))] z-10 flex items-center justify-between px-6">
+              {/* El control de sonido no tiene sentido antes de empezar: el
+                  video arrancará con audio de todos modos. */}
+              {started ? (
+                <button
+                  onClick={toggleSound}
+                  aria-label={muted ? "Activar el sonido" : "Silenciar el video"}
+                  className="flex items-center gap-2 rounded-full border border-white/40 bg-black/30 px-4 py-2 text-xs uppercase tracking-[0.1em] text-white backdrop-blur"
+                >
+                  <SpeakerIcon muted={muted} />
+                  {/* Con el sonido puesto basta el icono; apagado conviene
+                      decirlo, que es lo que el invitado querrá tocar. */}
+                  {muted && "Sonido"}
+                </button>
+              ) : (
+                <span />
+              )}
 
               {/* Salida siempre disponible: si el video es largo, falla el
                   evento de fin o el invitado ya lo vio, no queda atrapado. */}

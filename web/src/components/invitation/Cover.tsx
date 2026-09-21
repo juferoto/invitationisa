@@ -49,6 +49,34 @@ function ClickIcon({ className }: { className?: string }) {
 }
 
 /**
+ * Estado de la música. Sonando muestra la pausa; en pausa, una nota con el
+ * triángulo de reproducir, para que se entienda que vuelve a sonar.
+ */
+function MusicIcon({ playing }: { playing: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-5 w-5"
+      aria-hidden="true"
+    >
+      {playing ? (
+        <>
+          <path d="M9.5 5.5v13" />
+          <path d="M14.5 5.5v13" />
+        </>
+      ) : (
+        <path d="M8.5 6.5 19 12 8.5 17.5z" fill="currentColor" />
+      )}
+    </svg>
+  );
+}
+
+/**
  * Portada que se muestra antes de la invitación: foto difuminada y sobre a la
  * izquierda, saludo al invitado a la derecha. En móvil se apila, con la foto y
  * el sobre primero.
@@ -193,15 +221,16 @@ export default function Cover({
           gesto. `loop` hace que se repita indefinidamente. */}
       {musicSrc && <audio ref={audioRef} src={musicSrc} loop preload="auto" />}
 
-      {/* Ya en la portada, porque la música puede estar sonando desde ahí.
-          `z-[55]` la deja sobre la portada (z-50) y bajo el video (z-60). */}
-      {musicSrc && (open || playing) && (
+      {/* Presente desde la portada y sin desaparecer al pausar: quien calla la
+          música tiene que poder devolverla. `z-[55]` lo deja sobre la portada
+          (z-50) y bajo el video de entrada (z-60), que lo tapa mientras dura. */}
+      {musicSrc && (
         <button
           onClick={toggleMusic}
           aria-label={playing ? "Pausar la música" : "Reproducir la música"}
           className="fixed bottom-5 right-5 z-[55] flex h-12 w-12 items-center justify-center rounded-full bg-[var(--event-primary)] text-white shadow-lg"
         >
-          {playing ? "❚❚" : "♪"}
+          <MusicIcon playing={playing} />
         </button>
       )}
 

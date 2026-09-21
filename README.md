@@ -172,14 +172,18 @@ desarrollo. En producción los medios salen de un dominio público
 Si cambias `next.config.ts` tienes que reiniciar `npm run dev`: la configuración
 no se recarga en caliente.
 
-**El video entra sin sonido, o la música no arranca sola.** No es un fallo: los
-navegadores solo dejan reproducir con sonido cuando el invitado ya tocó la
-página. El video lo intenta primero con audio y, si se lo rechazan, sigue en
-silencio con un botón «Sonido» a la izquierda. La música se lanza al aparecer
-la portada del sobre; si tampoco la dejan, entra al tocar «Ver invitación»,
-que ya es un gesto del usuario. Para que ese salto sea posible, el primer
-toque en cualquier parte desbloquea el elemento de audio en silencio: sin eso
-Safari en iOS no permitiría reproducirlo más tarde.
+**Aparece «Toca para comenzar» antes del video.** Ningún navegador deja
+arrancar un video con sonido sin que el invitado haya tocado la página: Safari
+y Chrome lo bloquean. La invitación lo intenta igual y, cuando se lo niegan,
+deja el video quieto en su primer cuadro tras ese aviso. El toque es el permiso
+que falta, y así el video suena completo desde el principio en vez de empezar
+mudo. Donde el navegador sí lo permite, el aviso ni se ve.
+
+Ese mismo toque desbloquea la canción: el primer contacto con la página lanza
+el elemento de audio en silencio y lo rebobina, que es la única forma de que
+Safari en iOS lo deje sonar más tarde por su cuenta. La música entra entonces
+al aparecer la portada del sobre, y si aun así la rechazan, arranca al tocar
+«Ver invitación».
 
 ## Pendientes conocidos
 

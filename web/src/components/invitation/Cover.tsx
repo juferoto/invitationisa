@@ -281,7 +281,7 @@ export default function Cover({
                   aria-label="Ver invitación"
                   // Por debajo del centro a propósito: deja despejado el tercio
                   // superior de la foto, que es donde queda el rostro.
-                  className="group absolute inset-x-0 top-[60%] mx-auto w-[88%] -translate-y-1/2 cursor-pointer"
+                  className="group absolute inset-x-0 top-[60%] mx-auto w-[72%] -translate-y-1/2 cursor-pointer"
                 >
                   {/* Flotación suave para que el sobre se sienta vivo. */}
                   <motion.div
@@ -330,8 +330,10 @@ export default function Cover({
                         </span>
                       </div>
 
-                      <span className="absolute inset-x-0 bottom-6 flex items-center justify-center gap-2 text-xs uppercase tracking-[0.1em] text-[var(--event-primary)]">
-                        <ClickIcon className="h-4 w-4" />
+                      {/* El pie se mide contra el sobre, como el resto de su texto: al
+                          encoger el sobre no se queda desproporcionado. */}
+                      <span className="absolute inset-x-0 bottom-[7cqw] flex items-center justify-center gap-[1.5cqw] uppercase tracking-[0.1em] text-[var(--event-primary)] text-[length:clamp(0.6rem,2.8cqw,0.75rem)]">
+                        <ClickIcon className="h-[3.4cqw] max-h-4 w-[3.4cqw] max-w-4 min-h-3 min-w-3" />
                         Ver invitación
                       </span>
                     </div>

@@ -18,8 +18,16 @@ fly auth signup      # o: fly auth login
 
 ### 1.2 Crear la aplicación
 
-Desde `api/`. El `fly.toml` ya está en el repositorio, así que **no dejes
-que lo regenere**:
+**Ejecuta todos los comandos de Fly desde dentro de `api/`, nunca desde la
+raíz del repositorio.** Fly usa el directorio actual como contexto de
+compilación, y el Dockerfile espera encontrar ahí `go.mod` y `go.sum`. Desde
+la raíz falla con `"/go.sum": not found`.
+
+No basta con apuntar `--config ./api/fly.toml`: esa opción indica dónde está
+la configuración, no dónde construir.
+
+El `fly.toml` ya está en el repositorio, así que **no dejes que lo
+regenere**:
 
 ```bash
 cd api
@@ -133,6 +141,19 @@ Fly reinicia la máquina al cambiar secretos. Espera unos segundos y entra a
 `https://TU-APP.vercel.app/admin/login`.
 
 ---
+
+## Si algo falla
+
+| Error | Causa | Solución |
+|---|---|---|
+| `Could not find a Dockerfile` | Lanzaste el comando desde la raíz | `cd api` y repite |
+| `"/go.sum": not found` | El contexto de build es la raíz | `cd api && fly deploy`, o `fly deploy ./api` |
+| `Volume not found` | El volumen está en otra región | Créalo en la misma del `primary_region` |
+| El login funciona pero el panel da 401 | La cookie no viaja entre dominios | `COOKIE_SAMESITE=none` y HTTPS en ambos |
+| Las fotos dan 400 | Falta autorizar el dominio | Define `NEXT_PUBLIC_MEDIA_HOST` en Vercel |
+
+Si `fly launch` falló a mitad, la aplicación ya quedó creada en Fly. **No
+repitas `fly launch`**: continúa con `fly deploy`.
 
 ## 4. Comprobación final
 

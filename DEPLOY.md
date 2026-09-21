@@ -163,6 +163,24 @@ Fly reinicia la máquina al cambiar secretos. Espera unos segundos y entra a
 Si `fly launch` falló a mitad, la aplicación ya quedó creada en Fly. **No
 repitas `fly launch`**: continúa con `fly deploy`.
 
+### Empezar la base desde cero
+
+Solo mientras no haya datos que perder. Hay que quitar la máquina antes que el
+volumen, porque lo tiene montado, y volver a crearlo después: `fly deploy` no
+lo crea solo, eso únicamente lo hace `fly launch`.
+
+```bash
+fly machine list
+fly machine destroy <ID-MAQUINA> --force
+fly volumes destroy <ID-VOLUMEN> --yes
+fly volumes create datos --region dfw --size 1 --yes
+fly deploy
+```
+
+Es lo que hay que hacer si el usuario admin quedó creado con la contraseña por
+defecto: el servidor solo lo siembra cuando la tabla está vacía, así que
+definir `SEED_ADMIN_PASSWORD` después no cambia nada.
+
 ## 4. Comprobación final
 
 1. **Login** en `/admin/login` con las credenciales del paso 1.4.

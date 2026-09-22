@@ -159,6 +159,7 @@ Fly reinicia la máquina al cambiar secretos. Espera unos segundos y entra a
 | El login funciona pero el panel da 401 | La cookie no viaja entre dominios | `COOKIE_SAMESITE=none` y HTTPS en ambos |
 | Las fotos dan 400 | Falta autorizar el dominio | Define `NEXT_PUBLIC_MEDIA_HOST` en Vercel |
 | "Failed to fetch" con todo bien configurado | La máquina estaba suspendida y el navegador abortó | `auto_stop_machines = false` en `fly.toml` |
+| `ROUTER_EXTERNAL_TARGET_HANDSHAKE_ERROR` en Vercel | Vercel no logra conectarse con la API al reenviar `/api/*`: casi siempre la máquina de Fly está caída o la cuenta suspendida por facturación | `fly status -a <app>`; si responde que la prueba terminó, añade tarjeta en fly.io/trial |
 
 Si `fly launch` falló a mitad, la aplicación ya quedó creada en Fly. **No
 repitas `fly launch`**: continúa con `fly deploy`.

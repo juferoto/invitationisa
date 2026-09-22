@@ -79,7 +79,8 @@ function ConsumoDelMes({ vistas, bytes }: { vistas: number; bytes: number }) {
         <span
           className={apretado ? "text-amber-700" : "text-[var(--color-muted)]"}
         >
-          {gb.toFixed(2)} GB de {CUOTA_GB} · {vistas} aperturas
+          {gb.toFixed(2)} GB de {CUOTA_GB} · {vistas}{" "}
+          {vistas === 1 ? "apertura" : "aperturas"}
         </span>
       </div>
 
@@ -95,7 +96,7 @@ function ConsumoDelMes({ vistas, bytes }: { vistas: number; bytes: number }) {
           ? "Todavía nadie ha abierto la invitación este mes. Aquí irá apareciendo cuánto se lleva consumido del almacén de medios."
           : apretado
             ? "Cerca del límite. Si se agota, las fotos y el video dejan de verse hasta el mes siguiente; no hay ningún cobro. Quitar el video desde Medios libera la mitad del consumo al instante."
-            : "Cada apertura descarga el video y la canción. La cuenta es una estimación por arriba: quien vuelve a abrir la invitación desde el mismo teléfono ya no los descarga."}
+            : "Cada apertura descarga el video y la canción. Cuenta todas las del mes, incluidas las de invitaciones que ya hayas borrado: ese tráfico se gastó igual. Y es una estimación por arriba, porque quien vuelve a abrir la invitación desde el mismo teléfono ya no los descarga."}
       </p>
     </section>
   );

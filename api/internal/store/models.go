@@ -118,4 +118,8 @@ type Summary struct {
 	Pending       int `json:"pending"`
 	AttendingSeat int `json:"attendingSeats"`
 	Opened        int `json:"opened"`
+	// Consumo estimado del almacén de medios en el mes en curso. Sirve para
+	// ver venir el límite del plan gratuito antes de chocar con él.
+	ViewsThisMonth int   `json:"viewsThisMonth"`
+	MediaBytes     int64 `json:"mediaBytesThisMonth"`
 }

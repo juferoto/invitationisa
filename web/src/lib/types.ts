@@ -112,6 +112,8 @@ export type Summary = {
   pending: number;
   attendingSeats: number;
   opened: number;
+  viewsThisMonth: number;
+  mediaBytesThisMonth: number;
 };
 
 export type SongRequest = {

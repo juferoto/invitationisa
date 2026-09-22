@@ -124,13 +124,46 @@ func (s *Store) DeleteGuest(eventID, id int64) error {
 // WhatsApp; el contador, para ver si un link se reenvió, que es lo que
 // dispara el consumo. Ninguno de los dos mide a nadie.
 func (s *Store) MarkOpened(guestID int64) error {
-	_, err := s.db.Exec(`
+	ahora := time.Now().UTC()
+	if _, err := s.db.Exec(`
 		UPDATE guests
 		SET views = views + 1,
 		    opened_at = COALESCE(opened_at, ?)
 		WHERE id = ?`,
-		time.Now().UTC().Format(time.RFC3339), guestID)
+		ahora.Format(time.RFC3339), guestID); err != nil {
+		return err
+	}
+	_, err := s.db.Exec(`
+		INSERT INTO daily_views (day, views) VALUES (?, 1)
+		ON CONFLICT(day) DO UPDATE SET views = views + 1`,
+		ahora.Format("2006-01-02"))
 	return err
+}
+
+// MonthlyUsage estima cuánto se lleva consumido del almacén de medios en el
+// mes en curso.
+//
+// No se pregunta al proveedor: se multiplica lo que pesa cada apertura por las
+// que hubo. Y ese peso no es una constante escrita a mano, sino la suma real
+// del video y la canción, que son los archivos que se descarga todo el que
+// abre la invitación. Las fotos no cuentan: las sirve Vercel desde su caché,
+// no el almacén. Así, si mañana se sube un video más liviano, la estimación se
+// corrige sola.
+func (s *Store) MonthlyUsage(eventID int64) (views int, bytes int64, err error) {
+	primero := time.Now().UTC().Format("2006-01") + "-01"
+	if err = s.db.QueryRow(
+		`SELECT COALESCE(SUM(views),0) FROM daily_views WHERE day >= ?`, primero,
+	).Scan(&views); err != nil {
+		return 0, 0, err
+	}
+	var porApertura int64
+	if err = s.db.QueryRow(
+		`SELECT COALESCE(SUM(size_bytes),0) FROM media
+		 WHERE event_id = ? AND section IN ('video','music')`, eventID,
+	).Scan(&porApertura); err != nil {
+		return 0, 0, err
+	}
+	return views, int64(views) * porApertura, nil
 }
 
 // SaveRSVP inserta o reemplaza la respuesta del invitado, recortando el número

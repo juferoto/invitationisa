@@ -181,6 +181,13 @@ func (s *Server) handleSummary(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+	// Si el consumo no se puede calcular, el resumen se entrega igual: es un
+	// dato de apoyo y no vale tumbar el panel por él.
+	if views, bytes, err := s.store.MonthlyUsage(ev.ID); err == nil {
+		sum.ViewsThisMonth, sum.MediaBytes = views, bytes
+	} else {
+		log.Printf("consumo del mes: %v", err)
+	}
 	writeJSON(w, http.StatusOK, sum)
 }
 

@@ -5,6 +5,12 @@ import { apiFetch } from "@/lib/api";
 import { useAuthed } from "@/lib/useAuthed";
 import type { Summary } from "@/lib/types";
 
+/**
+ * Cuota mensual del plan gratuito de Cloudinary, en GB. Si algún día se cambia
+ * de almacén o de plan, este es el único número que hay que tocar.
+ */
+const CUOTA_GB = 25;
+
 const CARDS: { key: keyof Summary; label: string; hint: string }[] = [
   { key: "guests", label: "Invitaciones", hint: "enviadas en total" },
   { key: "totalPasses", label: "Pases", hint: "asignados" },
@@ -39,6 +45,56 @@ export default function DashboardPage() {
           </div>
         ))}
       </div>
+
+      <ConsumoDelMes
+        vistas={data.viewsThisMonth}
+        bytes={data.mediaBytesThisMonth}
+      />
     </>
+  );
+}
+
+/**
+ * Aviso de consumo del almacén de medios.
+ *
+ * La cuota se mide por meses naturales y el aviso del proveedor llega por
+ * correo al 90%, que es tarde si nadie lo mira. Esto lo pone delante: cada
+ * apertura descarga el video y la canción, así que basta multiplicar.
+ *
+ * Es una estimación por arriba: quien vuelve a abrir el link desde el mismo
+ * teléfono no se descarga nada, porque los medios llevan caché de treinta
+ * días, y aquí se cuenta igual.
+ */
+function ConsumoDelMes({ vistas, bytes }: { vistas: number; bytes: number }) {
+  if (vistas === 0) return null;
+
+  const gb = bytes / 1024 ** 3;
+  const porcentaje = Math.min(100, (gb / CUOTA_GB) * 100);
+  const apretado = porcentaje >= 70;
+
+  return (
+    <section className="mt-8 rounded-lg border border-black/10 p-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="font-medium">Consumo de medios este mes</h2>
+        <span
+          className={apretado ? "text-amber-700" : "text-[var(--color-muted)]"}
+        >
+          {gb.toFixed(2)} GB de {CUOTA_GB} · {vistas} aperturas
+        </span>
+      </div>
+
+      <div className="mt-3 h-2 overflow-hidden rounded-full bg-black/10">
+        <div
+          className={`h-full rounded-full ${apretado ? "bg-amber-500" : "bg-[var(--event-primary)]"}`}
+          style={{ width: `${Math.max(porcentaje, 1)}%` }}
+        />
+      </div>
+
+      <p className="mt-3 text-xs text-[var(--color-muted)]">
+        {apretado
+          ? "Cerca del límite. Si se agota, las fotos y el video dejan de verse hasta el mes siguiente; no hay ningún cobro. Quitar el video desde Medios libera la mitad del consumo al instante."
+          : "Cada apertura descarga el video y la canción. La cuenta es una estimación por arriba: quien vuelve a abrir la invitación desde el mismo teléfono ya no los descarga."}
+      </p>
+    </section>
   );
 }

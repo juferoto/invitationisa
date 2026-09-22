@@ -6,8 +6,9 @@ api/server
 *.db
 *.db-shm
 *.db-wal
-.env
-.env.local
+# Cualquier archivo de entorno lleva secretos; la plantilla no.
+.env*
+!env.example
 .DS_Store
 
 # Volcados temporales de pruebas con curl

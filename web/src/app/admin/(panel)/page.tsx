@@ -66,8 +66,8 @@ export default function DashboardPage() {
  * días, y aquí se cuenta igual.
  */
 function ConsumoDelMes({ vistas, bytes }: { vistas: number; bytes: number }) {
-  if (vistas === 0) return null;
-
+  // Se muestra siempre, también con el contador a cero. Esconderla hasta que
+  // hubiera consumo la hacía invisible justo cuando alguien va a buscarla.
   const gb = bytes / 1024 ** 3;
   const porcentaje = Math.min(100, (gb / CUOTA_GB) * 100);
   const apretado = porcentaje >= 70;
@@ -91,9 +91,11 @@ function ConsumoDelMes({ vistas, bytes }: { vistas: number; bytes: number }) {
       </div>
 
       <p className="mt-3 text-xs text-[var(--color-muted)]">
-        {apretado
-          ? "Cerca del límite. Si se agota, las fotos y el video dejan de verse hasta el mes siguiente; no hay ningún cobro. Quitar el video desde Medios libera la mitad del consumo al instante."
-          : "Cada apertura descarga el video y la canción. La cuenta es una estimación por arriba: quien vuelve a abrir la invitación desde el mismo teléfono ya no los descarga."}
+        {vistas === 0
+          ? "Todavía nadie ha abierto la invitación este mes. Aquí irá apareciendo cuánto se lleva consumido del almacén de medios."
+          : apretado
+            ? "Cerca del límite. Si se agota, las fotos y el video dejan de verse hasta el mes siguiente; no hay ningún cobro. Quitar el video desde Medios libera la mitad del consumo al instante."
+            : "Cada apertura descarga el video y la canción. La cuenta es una estimación por arriba: quien vuelve a abrir la invitación desde el mismo teléfono ya no los descarga."}
       </p>
     </section>
   );

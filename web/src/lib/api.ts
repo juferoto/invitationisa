@@ -1,3 +1,5 @@
+import { cache } from "react";
+
 import type { Invitation } from "./types";
 
 /**
@@ -56,14 +58,22 @@ export async function apiFetch<T>(
 }
 
 /** Carga de la invitación desde el servidor de Next (SSR). */
-export async function getInvitation(token: string): Promise<Invitation | null> {
+/**
+ * `cache` comparte el resultado entre las llamadas de un mismo render. La
+ * página pide la invitación dos veces —una para la miniatura de WhatsApp y
+ * otra para el contenido—, y sin esto serían dos viajes a la API por visita,
+ * que además contarían doble en las estadísticas de aperturas.
+ */
+export const getInvitation = cache(async function getInvitation(
+  token: string,
+): Promise<Invitation | null> {
   const res = await fetch(
     `${SERVER_API_URL}/api/public/invitation/${encodeURIComponent(token)}`,
     { cache: "no-store" },
   );
   if (res.status === 404) return null;
   return unwrap<Invitation>(res);
-}
+});
 
 /**
  * Descarga un archivo del CRM. No usamos un <a href> directo porque la ruta

@@ -156,6 +156,7 @@ export default function GuestsPage() {
               <th className="py-2">Invitado</th>
               <th className="py-2">Pases</th>
               <th className="py-2">Respuesta</th>
+              <th className="py-2">Aperturas</th>
               <th className="py-2">Link</th>
               <th className="py-2"></th>
             </tr>
@@ -185,6 +186,29 @@ export default function GuestsPage() {
                     )
                   ) : (
                     <span className="text-amber-700">Pendiente</span>
+                  )}
+                </td>
+                {/* Un link abierto muchas más veces que pases asignados es
+                    señal de que se reenvió: no dice quién lo vio, pero sí que
+                    el consumo de ese link se multiplicó. */}
+                <td className="py-3">
+                  {guest.views === 0 ? (
+                    <span className="text-[var(--color-muted)]">—</span>
+                  ) : (
+                    <span
+                      className={
+                        guest.views > guest.passes * 4
+                          ? "text-amber-700"
+                          : undefined
+                      }
+                      title={
+                        guest.views > guest.passes * 4
+                          ? "Muchas más aperturas que pases: es probable que el link se haya compartido"
+                          : undefined
+                      }
+                    >
+                      {guest.views}
+                    </span>
                   )}
                 </td>
                 <td className="py-3">

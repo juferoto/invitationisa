@@ -88,6 +88,8 @@ export type Guest = {
   closingMessage: string;
   closingSignoff: string;
   openedAt: string | null;
+  /** Veces que se abrió el link, no personas distintas. */
+  views: number;
   createdAt: string;
   rsvp?: Rsvp | null;
   link: string;

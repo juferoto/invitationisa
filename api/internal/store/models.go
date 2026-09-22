@@ -72,8 +72,11 @@ type Guest struct {
 	GroupLabel string  `json:"groupLabel"`
 	Notes      string  `json:"notes"`
 	OpenedAt   *string `json:"openedAt"`
-	CreatedAt  string  `json:"createdAt"`
-	RSVP       *RSVP   `json:"rsvp,omitempty"`
+	// Veces que se ha abierto el link. Muy por encima de los pases asignados
+	// significa que se reenvió.
+	Views     int    `json:"views"`
+	CreatedAt string `json:"createdAt"`
+	RSVP      *RSVP  `json:"rsvp,omitempty"`
 }
 
 type RSVP struct {

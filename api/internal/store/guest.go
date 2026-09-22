@@ -21,7 +21,7 @@ func NewToken() string {
 }
 
 const guestColumns = `g.id, g.event_id, g.token, g.name, g.passes, g.phone, g.email,
-	g.group_label, g.notes, g.opened_at, g.created_at,
+	g.group_label, g.notes, g.opened_at, g.views, g.created_at,
 	r.status, r.attending_count, r.message, r.responded_at`
 
 func scanGuest(row interface{ Scan(...any) error }) (*Guest, error) {
@@ -29,7 +29,7 @@ func scanGuest(row interface{ Scan(...any) error }) (*Guest, error) {
 	var status, message, respondedAt sql.NullString
 	var attending sql.NullInt64
 	err := row.Scan(&g.ID, &g.EventID, &g.Token, &g.Name, &g.Passes, &g.Phone, &g.Email,
-		&g.GroupLabel, &g.Notes, &g.OpenedAt, &g.CreatedAt,
+		&g.GroupLabel, &g.Notes, &g.OpenedAt, &g.Views, &g.CreatedAt,
 		&status, &attending, &message, &respondedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
@@ -119,10 +119,16 @@ func (s *Store) DeleteGuest(eventID, id int64) error {
 	return nil
 }
 
-// MarkOpened registra la primera apertura del link. Sirve para saber a quién
-// hay que insistirle por WhatsApp, no para medir a nadie.
+// MarkOpened registra una apertura del link: la fecha de la primera y el
+// número total. La fecha sirve para saber a quién hay que insistirle por
+// WhatsApp; el contador, para ver si un link se reenvió, que es lo que
+// dispara el consumo. Ninguno de los dos mide a nadie.
 func (s *Store) MarkOpened(guestID int64) error {
-	_, err := s.db.Exec(`UPDATE guests SET opened_at = ? WHERE id = ? AND opened_at IS NULL`,
+	_, err := s.db.Exec(`
+		UPDATE guests
+		SET views = views + 1,
+		    opened_at = COALESCE(opened_at, ?)
+		WHERE id = ?`,
 		time.Now().UTC().Format(time.RFC3339), guestID)
 	return err
 }

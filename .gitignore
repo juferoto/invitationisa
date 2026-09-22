@@ -17,5 +17,7 @@ api/server
 # La canción se sirve desde el almacén de medios, no desde el repo
 /web/cancion.mpeg
 
-# Canciones recomprimidas para subir al panel
+# Medios recomprimidos para subir al panel: no son código, y el original
+# sigue estando en el almacén.
 /cancion-*.m4a
+/video-comprimido.mp4

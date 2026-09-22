@@ -21,7 +21,7 @@ web/   Next.js                                   ->  Vercel
 |------|----------|---------|
 | Backend | Go 1.27 + chi | Binario estático de ~20 MB, arranque instantáneo, despliegue en Cloud Run / Fly.io sin JVM |
 | Base de datos | SQLite (modernc.org/sqlite, sin cgo) | Un archivo, cero operación, backup con Litestream |
-| Medios | Almacenamiento de objetos (disco local o Cloudflare R2) | Las imágenes, el audio y el video **nunca** entran a la base: solo se guarda la referencia |
+| Medios | Almacenamiento externo (Cloudinary, cualquier S3, o disco local) | Las imágenes, el audio y el video **nunca** entran a la base: solo se guarda la referencia |
 | Sesión del panel | JWT firmado con HS256, una hora | Con lista de revocación, para poder anular un token antes de que venza |
 | Frontend | Next.js 16 + TypeScript + Tailwind v4 + Motion | SSR para la miniatura de WhatsApp, responsive mobile-first |
 
@@ -142,19 +142,24 @@ ejemplo.
 distroless. En Fly.io o Cloud Run monta un volumen para `data/` (o usa
 Litestream contra R2 si quieres replicación continua).
 
-**Medios en producción** — crea un bucket en R2, conéctale un dominio
-(`media.tudominio.com`) y pon:
+**Medios en producción** — Cloudinary, que sirve desde su red de distribución:
 
 ```
-STORAGE_DRIVER=s3
-S3_ENDPOINT=<account-id>.r2.cloudflarestorage.com
-S3_BUCKET=invitaciones
-S3_ACCESS_KEY=... S3_SECRET_KEY=...
-STORAGE_BASE_URL=https://media.tudominio.com
+STORAGE_DRIVER=cloudinary
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=... CLOUDINARY_API_SECRET=...
 ```
 
-R2 no cobra egreso, que es lo que importa cuando doscientos invitados abren la
-galería y el video desde el teléfono.
+Así el video no sale por el servidor, que es lo que importa cuando doscientos
+invitados abren la galería desde el teléfono: el tráfico de salida es la única
+parte variable de la factura. El driver `s3` sigue disponible para R2, B2 o
+MinIO con `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` y
+`STORAGE_BASE_URL`.
+
+La dirección de cada archivo se deduce de su clave: `image/hero/abc.jpg` se
+sirve en `res.cloudinary.com/<cuenta>/image/upload/image/hero/abc.jpg`. Por eso
+no hace falta guardar la URL que devuelve la subida ni consultar nada para
+construirla.
 
 **Frontend** — Vercel, o `npm run build && npm start` en un contenedor. Define
 `NEXT_PUBLIC_API_URL` (la API pública) y `NEXT_PUBLIC_MEDIA_HOST` (el dominio

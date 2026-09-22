@@ -133,6 +133,9 @@ func resolveJWTSecret(cfg config.Config) []byte {
 }
 
 func buildStorage(cfg config.Config) (storage.Store, error) {
+	if cfg.StorageDriver == "cloudinary" {
+		return storage.NewCloudinary(cfg.CloudinaryCloud, cfg.CloudinaryKey, cfg.CloudinarySecret)
+	}
 	if cfg.StorageDriver == "s3" {
 		return storage.NewS3(cfg.S3Endpoint, cfg.S3AccessKey, cfg.S3SecretKey, cfg.S3Region, cfg.S3Bucket, cfg.StorageBaseURL)
 	}

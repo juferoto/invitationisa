@@ -62,7 +62,10 @@ ampliar después sin recrearlo.
 fly secrets set \
   JWT_SECRET="$(openssl rand -base64 32)" \
   SEED_ADMIN_EMAIL="tu@correo.com" \
-  SEED_ADMIN_PASSWORD="una-contraseña-larga"
+  SEED_ADMIN_PASSWORD="una-contraseña-larga" \
+  CLOUDINARY_CLOUD_NAME="..." \
+  CLOUDINARY_API_KEY="..." \
+  CLOUDINARY_API_SECRET="..."
 ```
 
 `JWT_SECRET` firma las sesiones. Si no la defines, el servidor genera una al
@@ -81,12 +84,10 @@ Al terminar, anota la URL: `https://TU-API.fly.dev`.
 
 ### 1.6 Completar las URLs
 
-Ahora que conoces el dominio de la API, y antes de saber el de Vercel, deja
-lista la parte que ya puedes:
-
-```bash
-fly secrets set STORAGE_BASE_URL="https://TU-API.fly.dev/media"
-```
+Con Cloudinary no hace falta `STORAGE_BASE_URL`: la dirección de cada archivo
+se deduce de su clave y del nombre de tu cuenta. Solo tendrías que definirla
+si sirvieras los medios desde el propio volumen (`STORAGE_DRIVER=local`), y
+entonces sería `https://TU-API.fly.dev/media`.
 
 ### 1.7 Comprobar
 
@@ -239,13 +240,41 @@ una plataforma.
 
 ---
 
-## Mover los medios a Cloudflare R2
+## Los medios en Cloudinary
 
-El volumen de Fly funciona, pero si muchos invitados cargan la canción y las
-fotos, ese tráfico sale de tu máquina. R2 no cobra egreso y sirve desde el
-nodo más cercano a cada invitado.
+Los medios no viven en el volumen de Fly: van a Cloudinary y se sirven desde
+su red de distribución. La razón es el dinero. El tráfico de salida es la
+única parte variable de la factura de Fly, y el video es el 80% de ese
+tráfico; sacándolo de ahí, la factura se queda en los 3,47 USD fijos de la
+máquina y el disco.
 
-Crea un bucket, conéctale un dominio y cambia los secretos:
+Y hay una segunda razón, menos obvia: el plan gratuito de Cloudinary (25 GB
+al mes, sin tarjeta) **deja de servir cuando se agota, no factura**. Si
+alguien se pusiera a descargar el video en bucle, el peor caso es que la
+invitación se quede sin fotos unas horas, no una factura sorpresa.
+
+La configuración son tres secretos, que salen de la consola de Cloudinary: el
+nombre está en el panel principal y la clave y el secreto en **Settings → API
+Keys**.
+
+```bash
+fly secrets set \
+  STORAGE_DRIVER=cloudinary \
+  CLOUDINARY_CLOUD_NAME=... \
+  CLOUDINARY_API_KEY=... \
+  CLOUDINARY_API_SECRET=...
+```
+
+En Vercel, `NEXT_PUBLIC_MEDIA_HOST=res.cloudinary.com`, que es lo que autoriza
+a `next/image` a optimizar esas imágenes.
+
+**Los archivos ya subidos no se migran solos.** Vuelve a subirlos desde el
+panel después del cambio.
+
+### Cualquier almacén compatible con S3
+
+El driver `s3` sigue ahí para R2, Backblaze B2 o MinIO, por si algún día
+conviene mudarse:
 
 ```bash
 fly secrets set \
@@ -257,9 +286,33 @@ fly secrets set \
   STORAGE_BASE_URL="https://media.tudominio.com"
 ```
 
-No hay que tocar código: los dos drivers implementan la misma interfaz. Ojo
-con un detalle: **los archivos ya subidos no se migran solos**. Vuelve a
-subirlos desde el panel, o cópialos del volumen al bucket antes del cambio.
+No hay que tocar código: los tres drivers implementan la misma interfaz.
+
+## Comprimir el video antes de subirlo
+
+El video de entrada es, con diferencia, el archivo más pesado, y cada visita
+se lo descarga entero. Comprimirlo es la palanca más eficaz que hay sobre el
+tráfico, y de paso la invitación abre mucho más rápido con datos móviles.
+
+```bash
+brew install ffmpeg   # una vez
+
+ffmpeg -i original.mp4 \
+  -vf "scale=900:1600:flags=lanczos" \
+  -c:v libx264 -profile:v high -preset veryslow -crf 27 \
+  -pix_fmt yuv420p -movflags +faststart \
+  -c:a aac -b:a 96k \
+  video-comprimido.mp4
+```
+
+Los números no son al azar: se midieron con VMAF, que estima la calidad tal
+como la percibe una persona. Sobre el video de 15 MB de esta invitación, esa
+receta da 3,19 MB con una puntuación de 92 sobre 100 —por encima de 90 los
+defectos son difíciles de notar, y en la pantalla de un teléfono todavía
+menos—. Bajar más de ahí empieza a verse.
+
+`-movflags +faststart` mueve el índice al principio del archivo: sin eso el
+navegador tiene que descargarlo entero antes de empezar a reproducir.
 
 ---
 

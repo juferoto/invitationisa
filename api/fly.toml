@@ -13,9 +13,13 @@ primary_region = 'dfw'
   ADDR = ':8080'
   COOKIE_SAMESITE = 'lax'
   DATABASE_DSN = 'file:/data/invitation.db?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)&_pragma=foreign_keys(1)'
-  STORAGE_DRIVER = 'local'
-  STORAGE_LOCAL_DIR = '/data/media'
+  # Los medios viven en Cloudinary, no en el disco de la máquina: así el
+  # video no sale por aquí y el tráfico de salida —la única parte variable de
+  # la factura— se queda en casi cero. Las claves van en `fly secrets`.
+  STORAGE_DRIVER = 'cloudinary'
 
+# El volumen ya solo guarda la base de datos, que pesa unos cientos de KB.
+# El tamaño mínimo de Fly es 1 GB y cuesta 0,15 USD al mes.
 [[mounts]]
   source = 'datos'
   destination = '/data'

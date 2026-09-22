@@ -14,15 +14,19 @@ type Config struct {
 	PublicURL   string // base para construir los links de invitado
 	CORSOrigin  string
 
-	// Almacenamiento de medios. Driver "local" en desarrollo, "s3" para R2.
-	StorageDriver   string
-	StorageLocalDir string
-	StorageBaseURL  string
-	S3Endpoint      string
-	S3Bucket        string
-	S3AccessKey     string
-	S3SecretKey     string
-	S3Region        string
+	// Almacenamiento de medios: "local" en desarrollo, "cloudinary" en
+	// producción, "s3" para cualquier almacén compatible (R2, B2, MinIO).
+	StorageDriver    string
+	StorageLocalDir  string
+	StorageBaseURL   string
+	S3Endpoint       string
+	S3Bucket         string
+	S3AccessKey      string
+	S3SecretKey      string
+	S3Region         string
+	CloudinaryCloud  string
+	CloudinaryKey    string
+	CloudinarySecret string
 
 	MaxUploadBytes int64
 
@@ -54,6 +58,9 @@ func Load() Config {
 		S3AccessKey:       env("S3_ACCESS_KEY", ""),
 		S3SecretKey:       env("S3_SECRET_KEY", ""),
 		S3Region:          env("S3_REGION", "auto"),
+		CloudinaryCloud:   env("CLOUDINARY_CLOUD_NAME", ""),
+		CloudinaryKey:     env("CLOUDINARY_API_KEY", ""),
+		CloudinarySecret:  env("CLOUDINARY_API_SECRET", ""),
 		MaxUploadBytes:    envInt64("MAX_UPLOAD_BYTES", 128<<20), // 128 MB, suficiente para video corto
 		JWTSecret:         env("JWT_SECRET", ""),
 		CookieSameSite:    strings.ToLower(env("COOKIE_SAMESITE", "lax")),

@@ -78,9 +78,24 @@ func (s *Server) Router() http.Handler {
 
 	// En modo local servimos los archivos desde el mismo binario.
 	if local, ok := s.files.(*storage.Local); ok {
-		r.Handle("/media/*", http.StripPrefix("/media/", http.FileServer(http.Dir(local.Dir()))))
+		files := http.StripPrefix("/media/", http.FileServer(http.Dir(local.Dir())))
+		r.Handle("/media/*", cacheForever(files))
 	}
 	return r
+}
+
+// cacheForever marca los medios como inmutables para el navegador.
+//
+// Cada archivo subido recibe un nombre propio irrepetible y nunca se
+// sobrescribe: si el contenido cambia, cambia la URL. Eso permite decirle al
+// navegador que no vuelva a pedirlo nunca. Sin esta cabecera, quien reabre la
+// invitación se descarga el video entero otra vez, que es casi todo el tráfico
+// que paga el servidor.
+func cacheForever(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		next.ServeHTTP(w, r)
+	})
 }
 
 // cors permite que el frontend de Next.js llame a la API en desarrollo.

@@ -7,9 +7,11 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/httprate"
 
 	"github.com/juanrodriguez/invitationisa/api/internal/config"
 	"github.com/juanrodriguez/invitationisa/api/internal/storage"
@@ -31,19 +33,30 @@ func (s *Server) Router() http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID, middleware.RealIP, middleware.Logger, middleware.Recoverer)
 	r.Use(s.cors)
+	// Techo general por IP. Abrir la invitación son unas quince peticiones, así
+	// que 120 por minuto no estorba a nadie y corta el goteo automatizado.
+	// `RealIP` va antes a propósito: detrás del proxy de Vercel todas las
+	// peticiones llegarían con la misma dirección y el límite sería inútil.
+	r.Use(httprate.LimitByIP(120, time.Minute))
 
 	r.Get("/health", func(w http.ResponseWriter, _ *http.Request) { writeJSON(w, 200, map[string]string{"status": "ok"}) })
 
 	// Rutas públicas: todo se resuelve con el token del invitado.
 	r.Route("/api/public", func(r chi.Router) {
 		r.Get("/invitation/{token}", s.handleInvitation)
-		r.Post("/invitation/{token}/rsvp", s.handleRSVP)
-		r.Post("/invitation/{token}/songs", s.handleSongRequest)
+		// Confirmar asistencia y sugerir canciones son actos puntuales: un
+		// invitado normal no llega a diez por minuto, y el límite evita que
+		// alguien llene la lista de canciones desde un script.
+		r.With(httprate.LimitByIP(10, time.Minute)).Post("/invitation/{token}/rsvp", s.handleRSVP)
+		r.With(httprate.LimitByIP(10, time.Minute)).Post("/invitation/{token}/songs", s.handleSongRequest)
 	})
 
 	// Rutas del CRM: exigen sesión de admin.
 	r.Route("/api/admin", func(r chi.Router) {
-		r.Post("/login", s.handleLogin)
+		// La contraseña del panel es la única puerta al CRM: sin un freno,
+		// probar claves a ciegas sale gratis. Diez intentos por minuto no
+		// molestan a quien la escribe mal dos veces.
+		r.With(httprate.LimitByIP(10, time.Minute)).Post("/login", s.handleLogin)
 		r.Group(func(r chi.Router) {
 			r.Use(s.requireAdmin)
 			r.Post("/logout", s.handleLogout)
@@ -79,7 +92,12 @@ func (s *Server) Router() http.Handler {
 	// En modo local servimos los archivos desde el mismo binario.
 	if local, ok := s.files.(*storage.Local); ok {
 		files := http.StripPrefix("/media/", http.FileServer(http.Dir(local.Dir())))
-		r.Handle("/media/*", cacheForever(files))
+		// Ver la invitación entera son pocas decenas de peticiones, pero el
+		// video y el audio se piden por trozos y suman muchas más. El límite
+		// es alto a propósito: frena la descarga en bucle sin cortarle la
+		// reproducción a nadie. Contra un ataque repartido entre muchas
+		// direcciones no basta: para eso los medios van a un CDN.
+		r.With(httprate.LimitByIP(300, time.Minute)).Handle("/media/*", cacheForever(files))
 	}
 	return r
 }

@@ -268,8 +268,29 @@ fly secrets set \
 En Vercel, `NEXT_PUBLIC_MEDIA_HOST=res.cloudinary.com`, que es lo que autoriza
 a `next/image` a optimizar esas imágenes.
 
-**Los archivos ya subidos no se migran solos.** Vuelve a subirlos desde el
-panel después del cambio.
+### Mover los archivos que ya estaban subidos
+
+Cambiar de almacén no mueve nada. La base guarda la clave de cada archivo y la
+dirección se calcula al leerla, así que tras el cambio las claves apuntan a un
+sitio donde todavía no está el contenido y la invitación se queda sin fotos.
+
+`cmd/migratemedia` los copia con la misma clave, de modo que la base no se
+toca:
+
+```bash
+# 1. las claves que conoce la base, sacadas del panel
+curl -s -b cookie.txt https://TU-API.fly.dev/api/admin/media |
+  python3 -c "import json,sys; [print(m['url'].split('/media/',1)[1]) for m in json.load(sys.stdin)]" \
+  > claves.txt
+
+# 2. se descargan del almacén viejo y se suben al nuevo
+cd api
+STORAGE_DRIVER=cloudinary CLOUDINARY_CLOUD_NAME=... CLOUDINARY_API_KEY=... CLOUDINARY_API_SECRET=... \
+  go run ./cmd/migratemedia -from https://TU-API.fly.dev/media < claves.txt
+```
+
+Hazlo **antes** de cambiar `STORAGE_DRIVER` en el servidor: mientras no cambie,
+el almacén viejo sigue sirviendo y la invitación no se cae en ningún momento.
 
 ### Cualquier almacén compatible con S3
 

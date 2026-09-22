@@ -49,7 +49,7 @@ const SECTIONS = [
   {
     value: "video",
     label: "Video de entrada",
-    help: "Se reproduce a pantalla completa antes de mostrar el sobre y se desvanece al terminar. Va silenciado: los navegadores bloquean el sonido automático. Déjalo vacío si no quieres video.",
+    help: "Se reproduce a pantalla completa antes de mostrar el sobre y se desvanece al terminar. Arranca solo; si el navegador no permite el sonido automático, empieza en silencio y el invitado lo activa tocando la pantalla. Comprímelo antes de subirlo: es el archivo que más pesa de toda la invitación. Déjalo vacío si no quieres video.",
     accept: "video/*",
     single: true,
   },
@@ -142,12 +142,14 @@ export default function MediaPage() {
               </label>
             </div>
 
-            {/* Una sección de un solo archivo con varios cargados es un aviso
-                útil: la invitación solo mostrará el primero. */}
+            {/* Subir a una sección de un solo archivo reemplaza el anterior,
+                así que esto ya no debería pasar. Se deja como red: si el
+                borrado del viejo falló, conviene saberlo, porque el que se ve
+                es el primero de la lista y no el recién subido. */}
             {section.single && items.length > 1 && (
               <p className="mt-3 text-sm text-amber-700">
-                Hay {items.length} archivos aquí y la invitación solo muestra el
-                primero. Elimina los que sobren.
+                Quedaron {items.length} archivos aquí y la invitación solo
+                muestra el primero. Elimina los que sobren.
               </p>
             )}
 

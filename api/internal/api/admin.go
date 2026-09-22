@@ -662,8 +662,51 @@ func (s *Server) handleUploadMedia(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+	// Las secciones de un solo archivo se reemplazan de verdad: el panel
+	// anuncia «Reemplazar» y, sin esto, el archivo viejo se quedaba en la
+	// lista y era el que seguía viéndose, porque la invitación toma el
+	// primero. Va después de crear el nuevo: si algo falla antes, la
+	// invitación conserva el que ya tenía.
+	if singleFileSections[section] {
+		s.dropOtherMedia(r.Context(), ev.ID, section, m.ID)
+	}
+
 	m.URL = s.files.URL(key)
 	writeJSON(w, http.StatusCreated, m)
+}
+
+// singleFileSections son los huecos de la invitación que muestran un único
+// archivo. La galería no está: ahí se acumulan a propósito.
+var singleFileSections = map[string]bool{
+	"cover":     true,
+	"hero":      true,
+	"dresscode": true,
+	"music":     true,
+	"video":     true,
+}
+
+// dropOtherMedia borra los archivos anteriores de una sección, dejando solo el
+// recién subido. Los fallos se registran pero no tumban la subida: el archivo
+// nuevo ya está guardado y es el que manda; lo que queda atrás, como mucho, es
+// un huérfano que ocupa sitio.
+func (s *Server) dropOtherMedia(ctx context.Context, eventID int64, section string, keepID int64) {
+	previos, err := s.store.Media(eventID, section)
+	if err != nil {
+		log.Printf("reemplazar %s: no se pudo listar lo anterior: %v", section, err)
+		return
+	}
+	for _, viejo := range previos {
+		if viejo.ID == keepID {
+			continue
+		}
+		if err := s.store.DeleteMedia(eventID, viejo.ID); err != nil {
+			log.Printf("reemplazar %s: no se pudo borrar el registro %d: %v", section, viejo.ID, err)
+			continue
+		}
+		if err := s.files.Delete(ctx, viejo.StorageKey); err != nil {
+			log.Printf("reemplazar %s: queda un archivo huérfano %s: %v", section, viejo.StorageKey, err)
+		}
+	}
 }
 
 func (s *Server) handleUpdateMedia(w http.ResponseWriter, r *http.Request) {

@@ -4,7 +4,11 @@ const isDev = process.env.NODE_ENV !== "production";
 
 // Dominio desde el que se sirven los medios en producción (el bucket de R2 o
 // su CDN). En desarrollo los sirve el propio backend en localhost:8080.
-const mediaHost = process.env.NEXT_PUBLIC_MEDIA_HOST;
+// Sin prefijo `NEXT_PUBLIC_`: esto solo se lee aquí, al construir el sitio, y
+// nunca llega al navegador. Se acepta también el nombre con prefijo porque es
+// el que quedó configurado en su día.
+const mediaHost =
+  process.env.MEDIA_HOST ?? process.env.NEXT_PUBLIC_MEDIA_HOST;
 
 // Origen real de la API. Solo se usa en el servidor, para el reenvío.
 const apiOrigin = (

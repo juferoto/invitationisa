@@ -471,8 +471,11 @@ export default async function InvitationPage({ params }: Props) {
             <Band tone="sky">
               <Reveal>
                 <SectionTitle>Confirma tu asistencia</SectionTitle>
+                {/* Al tamaño de cuerpo de la invitación y no al de una nota
+                    al pie: es una instrucción con fecha, de lo poco que el
+                    invitado tiene que hacer. */}
                 {event.rsvpDeadline && (
-                  <p className="mb-8 text-center text-sm text-[var(--color-muted)]">
+                  <p className="mb-8 text-center text-[length:var(--text-body)] text-[var(--color-muted)]">
                     Agradecemos confirmar antes del{" "}
                     {formatDate(event.rsvpDeadline)}.
                   </p>

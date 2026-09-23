@@ -2,11 +2,26 @@
 
 import { useCallback, useRef, useState } from "react";
 import QrDialog from "@/components/admin/QrDialog";
+import PhoneField, {
+  DEFAULT_COUNTRY,
+  fullPhone,
+} from "@/components/admin/PhoneField";
 import { apiFetch, downloadFile } from "@/lib/api";
 import { useAuthed } from "@/lib/useAuthed";
 import type { Guest } from "@/lib/types";
 
-const EMPTY = { name: "", passes: 2, phone: "", groupLabel: "" };
+/**
+ * `passes` vacío a propósito: un 2 por defecto se cuela tal cual en las
+ * invitaciones que nadie revisa. Vacío obliga a escribir el número, y el
+ * texto del campo dice cuál es.
+ */
+const EMPTY = {
+  name: "",
+  passes: "",
+  phone: "",
+  groupLabel: "",
+  country: DEFAULT_COUNTRY,
+};
 
 export default function GuestsPage() {
   const load = useCallback(() => apiFetch<Guest[]>("/api/admin/guests"), []);
@@ -20,9 +35,16 @@ export default function GuestsPage() {
     e.preventDefault();
     if (!form.name.trim()) return;
     try {
+      const { country, ...resto } = form;
       await apiFetch("/api/admin/guests", {
         method: "POST",
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...resto,
+          // Sin número escrito, un pase: es lo mínimo con sentido para una
+          // invitación.
+          passes: Number(form.passes) || 1,
+          phone: fullPhone(country, form.phone),
+        }),
       });
       setForm(EMPTY);
       await reload();
@@ -77,7 +99,14 @@ export default function GuestsPage() {
 
   function whatsappLink(guest: Guest) {
     const text = `¡Hola ${guest.name}! Te compartimos la invitación: ${guest.link}`;
-    const phone = guest.phone.replace(/\D/g, "");
+    let phone = guest.phone.replace(/\D/g, "");
+    // Puente para los guardados antes del selector de país: `wa.me` necesita
+    // el indicativo y sin él no abre ninguna conversación. Diez dígitos es un
+    // móvil colombiano; cualquier otra longitud se deja como está, que es
+    // menos arriesgado que adivinar.
+    if (!guest.phone.startsWith("+") && phone.length === 10) {
+      phone = `57${phone}`;
+    }
     return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
   }
 
@@ -96,7 +125,7 @@ export default function GuestsPage() {
           </button>
           <button
             onClick={() => exportCsv("confirmed")}
-            className="rounded-full bg-[var(--event-primary)] px-4 py-2 text-white"
+            className="rounded-full border border-black/15 px-4 py-2"
           >
             Exportar confirmados
           </button>
@@ -127,19 +156,25 @@ export default function GuestsPage() {
           placeholder="Nombre o familia"
           className="rounded-md border border-black/15 px-3 py-2 sm:col-span-2"
         />
+        {/* `inputMode` es lo que saca el teclado numérico en el móvil; con
+            `type="number"` el teclado trae además signos y letras. El filtro
+            del onChange garantiza que solo entren dígitos. */}
         <input
-          type="number"
-          min={1}
           value={form.passes}
-          onChange={(e) => setForm({ ...form, passes: Number(e.target.value) })}
-          placeholder="Pases"
+          onChange={(e) =>
+            setForm({ ...form, passes: e.target.value.replace(/\D/g, "") })
+          }
+          inputMode="numeric"
+          pattern="[0-9]*"
+          placeholder="Número de invitados"
+          aria-label="Número de invitados"
           className="rounded-md border border-black/15 px-3 py-2"
         />
-        <input
-          value={form.phone}
-          onChange={(e) => setForm({ ...form, phone: e.target.value })}
-          placeholder="WhatsApp"
-          className="rounded-md border border-black/15 px-3 py-2"
+        <PhoneField
+          country={form.country}
+          number={form.phone}
+          onCountry={(country) => setForm({ ...form, country })}
+          onNumber={(phone) => setForm({ ...form, phone })}
         />
         <button className="rounded-md bg-[var(--event-primary)] px-4 py-2 text-sm text-white">
           Agregar

@@ -1,5 +1,5 @@
-import Link from "next/link";
 import LogoutButton from "@/components/admin/LogoutButton";
+import NavLink from "@/components/admin/NavLink";
 
 const NAV = [
   { href: "/admin", label: "Resumen" },
@@ -22,13 +22,9 @@ export default function AdminLayout({
             CRM
           </span>
           {NAV.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="text-[var(--color-muted)] hover:text-[var(--event-primary)]"
-            >
+            <NavLink key={item.href} href={item.href}>
               {item.label}
-            </Link>
+            </NavLink>
           ))}
           <LogoutButton />
         </nav>

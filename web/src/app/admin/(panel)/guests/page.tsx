@@ -149,7 +149,7 @@ export default function GuestsPage() {
         invitación).
       </p>
 
-      <form onSubmit={create} className="mt-6 grid gap-3 sm:grid-cols-5">
+      <form onSubmit={create} className="mt-6 grid gap-3 sm:grid-cols-7">
         <input
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -168,14 +168,16 @@ export default function GuestsPage() {
           pattern="[0-9]*"
           placeholder="Número de invitados"
           aria-label="Número de invitados"
-          className="rounded-md border border-black/15 px-3 py-2"
+          className="rounded-md border border-black/15 px-3 py-2 sm:col-span-2"
         />
-        <PhoneField
-          country={form.country}
-          number={form.phone}
-          onCountry={(country) => setForm({ ...form, country })}
-          onNumber={(phone) => setForm({ ...form, phone })}
-        />
+        <div className="sm:col-span-2">
+          <PhoneField
+            country={form.country}
+            number={form.phone}
+            onCountry={(country) => setForm({ ...form, country })}
+            onNumber={(phone) => setForm({ ...form, phone })}
+          />
+        </div>
         <button className="rounded-md bg-[var(--event-primary)] px-4 py-2 text-sm text-white">
           Agregar
         </button>

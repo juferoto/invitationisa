@@ -56,8 +56,6 @@ export default function PhoneField({
   onCountry: (code: string) => void;
   onNumber: (value: string) => void;
 }) {
-  const dial = COUNTRIES.find((c) => c.code === country)?.dial ?? "";
-
   return (
     <div className="flex rounded-md border border-black/15 focus-within:border-[var(--event-primary)]">
       <select
@@ -66,7 +64,7 @@ export default function PhoneField({
         aria-label="País del teléfono"
         // `appearance-none` quita la flecha del sistema, que en este ancho
         // tapaba el indicativo.
-        className="w-24 shrink-0 appearance-none rounded-l-md bg-transparent px-2 py-2 text-sm"
+        className="w-[4.75rem] shrink-0 appearance-none rounded-l-md bg-transparent pl-2 pr-0 py-2 text-sm"
       >
         {COUNTRIES.map((c) => (
           <option key={c.code} value={c.code}>
@@ -82,7 +80,7 @@ export default function PhoneField({
         onChange={(e) => onNumber(e.target.value.replace(/\D/g, ""))}
         inputMode="tel"
         autoComplete="tel-national"
-        placeholder={`WhatsApp (+${dial})`}
+        placeholder="Número de WhatsApp"
         aria-label="Número de WhatsApp"
         className="w-full min-w-0 rounded-r-md bg-transparent px-2 py-2 outline-none"
       />

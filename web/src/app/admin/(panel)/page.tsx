@@ -79,7 +79,14 @@ function ConsumoDelMes({ vistas, bytes }: { vistas: number; bytes: number }) {
         <span
           className={apretado ? "text-amber-700" : "text-[var(--color-muted)]"}
         >
-          {gb.toFixed(2)} GB de {CUOTA_GB} · {vistas}{" "}
+          {/* La unidad va en las dos cifras: «0,16 GB de 25» dejaba al lector
+              adivinando de qué eran esos 25. Y la coma decimal, que es la que
+              se usa en español. */}
+          {gb.toLocaleString("es-CO", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}{" "}
+          GB de {CUOTA_GB} GB · {vistas}{" "}
           {vistas === 1 ? "apertura" : "aperturas"}
         </span>
       </div>

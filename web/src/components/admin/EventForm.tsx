@@ -108,10 +108,9 @@ const GROUPS: { title: string; help: string; fields: Field[] }[] = [
   },
   {
     title: "Fecha del evento",
-    help: "Alimenta la cuenta regresiva y el plazo para confirmar.",
+    help: "Alimenta la cuenta regresiva de la invitación.",
     fields: [
       { key: "eventDate", label: "Fecha y hora del evento", type: "datetime" },
-      { key: "rsvpDeadline", label: "Límite para confirmar", type: "datetime" },
       { key: "dateIcon", label: "Icono de la sección", type: "icon" },
     ],
   },
@@ -134,6 +133,17 @@ const GROUPS: { title: string; help: string; fields: Field[] }[] = [
         label: "Nota adicional",
         type: "multiline",
         wide: true,
+      },
+    ],
+  },
+  {
+    title: "Confirma tu asistencia",
+    help: "Pasada esa fecha la invitación deja de aceptar respuestas: ni desde la página ni por otro medio. Déjalo vacío para no poner plazo.",
+    fields: [
+      {
+        key: "rsvpDeadline",
+        label: "Fecha límite para confirmar",
+        type: "datetime",
       },
     ],
   },

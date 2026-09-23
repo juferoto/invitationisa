@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 
@@ -93,6 +94,20 @@ func (s *Server) handleRSVP(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+	// El plazo se comprueba aquí y no solo en el navegador: el formulario se
+	// bloquea con el reloj del teléfono del invitado, que puede ir mal o estar
+	// cambiado a mano, y de todos modos cualquiera con el link puede saltarse
+	// la página y llamar a esta ruta directamente.
+	ev, err := s.store.CurrentEvent()
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	if rsvpClosed(ev.RSVPDeadline, time.Now()) {
+		writeError(w, http.StatusConflict, "el plazo para confirmar la asistencia ya terminó")
+		return
+	}
+
 	var req rsvpRequest
 	if err := decode(r, &req); err != nil {
 		writeError(w, http.StatusBadRequest, "cuerpo inválido")

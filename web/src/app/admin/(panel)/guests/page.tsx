@@ -227,17 +227,19 @@ export default function GuestsPage() {
                 </td>
                 {/* Un link abierto muchas más veces que pases asignados es
                     señal de que se reenvió: no dice quién lo vio, pero sí que
-                    el consumo de ese link se multiplicó. */}
+                    el consumo de ese link se multiplicó.
+
+                    Ese aviso va en negrita y no en otro color: antes cambiaba
+                    de color según el número y la columna se leía como si
+                    tuviera dos significados distintos. */}
                 <td className="py-3">
                   {guest.views === 0 ? (
                     <span className="text-[var(--color-muted)]">—</span>
                   ) : (
                     <span
-                      className={
-                        guest.views > guest.passes * 4
-                          ? "text-amber-700"
-                          : undefined
-                      }
+                      className={`text-red-600${
+                        guest.views > guest.passes * 4 ? " font-semibold" : ""
+                      }`}
                       title={
                         guest.views > guest.passes * 4
                           ? "Muchas más aperturas que pases: es probable que el link se haya compartido"

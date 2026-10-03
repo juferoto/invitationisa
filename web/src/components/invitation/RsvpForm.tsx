@@ -20,10 +20,25 @@ export default function RsvpForm({
   deadline: string;
 }) {
   const [rsvp, setRsvp] = useState<Rsvp | null>(initial);
-  const [attending, setAttending] = useState(initial?.attendingCount ?? passes);
+  // Se guarda como texto para no pelear con quien está escribiendo: un número
+  // a medio teclear puede quedar vacío un instante, y forzarlo a 1 en ese
+  // momento le borraría la cifra bajo los dedos.
+  const [attending, setAttending] = useState(
+    String(initial?.attendingCount ?? passes),
+  );
   const [message, setMessage] = useState(initial?.message ?? "");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
+
+  // Una invitación de un solo pase no tiene nada que elegir.
+  const onlyOne = passes <= 1;
+
+  /** Deja el número dentro de lo que permite la invitación. */
+  function clamp(value: string) {
+    const n = Number(value);
+    if (!Number.isFinite(n) || n < 1) return 1;
+    return Math.min(Math.trunc(n), passes);
+  }
 
   // En el servidor `now` es null: damos el plazo por abierto para que el HTML
   // inicial coincida con la hidratación y no parpadee.
@@ -45,7 +60,7 @@ export default function RsvpForm({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             status,
-            attendingCount: status === "confirmed" ? attending : 0,
+            attendingCount: status === "confirmed" ? clamp(attending) : 0,
             message,
           }),
         },
@@ -77,26 +92,40 @@ export default function RsvpForm({
     );
   }
 
+  const confirmado = rsvp?.status === "confirmed";
+
   return (
     <div className="mx-auto w-full max-w-md">
       {rsvp && (
-        <div className="card mb-6 p-5 text-center">
-          {rsvp.status === "confirmed" ? (
+        // Confirmado se marca en ámbar y con borde grueso: el invitado que
+        // vuelve a abrir la invitación tiene que ver de un vistazo que su
+        // respuesta ya está dada, sin leer nada.
+        <div
+          className={
+            confirmado
+              ? "mb-6 rounded-[15px] border-2 border-amber-400 bg-amber-50 p-5 text-center text-amber-950"
+              : "card mb-6 p-5 text-center"
+          }
+        >
+          {confirmado ? (
             <p>
-              ¡Gracias, {guestName}! Te esperamos con{" "}
-              <span className="tracking-[0.1em] text-[var(--event-primary)]">
+              <span className="font-medium">¡Gracias, {guestName}!</span> Tu
+              asistencia está confirmada para{" "}
+              <span className="font-medium tracking-[0.1em]">
                 {rsvp.attendingCount}{" "}
-                {rsvp.attendingCount === 1 ? "pase" : "pases"}
+                {rsvp.attendingCount === 1 ? "persona" : "personas"}
               </span>
               .
             </p>
           ) : (
             <p>Lamentamos que no puedas acompañarnos. ¡Gracias por avisar!</p>
           )}
-          <p className="mt-2 text-xs text-[var(--color-muted)]">
+          <p
+            className={`mt-2 text-xs ${confirmado ? "text-amber-800" : "text-[var(--color-muted)]"}`}
+          >
             {closed
               ? "El plazo para cambiar tu respuesta ya se cerró. Escríbenos directamente si algo cambia."
-              : "Puedes cambiar tu respuesta abajo si algo se modifica."}
+              : "Si algo cambia puedes modificarla abajo, incluso avisar de que al final no podrás venir."}
           </p>
         </div>
       )}
@@ -106,18 +135,40 @@ export default function RsvpForm({
           van a fallar es peor que no ofrecerlos. */}
       {closed ? null : (
         <>
-          <label className="block text-sm text-[var(--color-muted)]">
+          <label
+            htmlFor="asistentes"
+            className="block text-sm text-[var(--color-muted)]"
+          >
             ¿Cuántas personas asisten? (tienes {passes}{" "}
             {passes === 1 ? "pase" : "pases"})
           </label>
           <input
-            type="number"
-            min={1}
-            max={passes}
+            id="asistentes"
+            // `inputMode` saca el teclado numérico en el móvil sin los signos
+            // que trae `type="number"`, y el tope se aplica según se escribe:
+            // así el invitado ve al momento que no puede pasar de sus pases.
+            inputMode="numeric"
+            pattern="[0-9]*"
             value={attending}
-            onChange={(e) => setAttending(Number(e.target.value))}
-            className="mt-2 w-full rounded-[10px] border border-[var(--event-primary)]/25 bg-white px-4 py-3 text-center text-lg"
+            disabled={onlyOne}
+            onChange={(e) => {
+              const digits = e.target.value.replace(/\D/g, "");
+              setAttending(
+                digits === "" || Number(digits) <= passes
+                  ? digits
+                  : String(passes),
+              );
+            }}
+            // Al salir del campo se normaliza lo que quedó a medias: vacío o
+            // cero pasan a uno.
+            onBlur={() => setAttending(String(clamp(attending)))}
+            className="mt-2 w-full rounded-[10px] border border-[var(--event-primary)]/25 bg-white px-4 py-3 text-center text-lg disabled:cursor-not-allowed disabled:bg-black/5 disabled:text-[var(--color-muted)]"
           />
+          {onlyOne && (
+            <p className="mt-2 text-xs text-[var(--color-muted)]">
+              Tu invitación es para una persona.
+            </p>
+          )}
 
           <textarea
             value={message}
@@ -135,8 +186,15 @@ export default function RsvpForm({
               disabled={sending}
               className="pill flex-1 bg-[var(--event-primary)] px-6 py-3.5 text-sm tracking-[0.05em] text-white shadow-lg disabled:opacity-50"
             >
-              {sending ? "Enviando…" : "Confirmar asistencia"}
+              {sending
+                ? "Enviando…"
+                : confirmado
+                  ? "Actualizar confirmación"
+                  : "Confirmar asistencia"}
             </button>
+            {/* Sigue disponible después de confirmar, hasta que venza el
+                plazo: quien se arrepiente tiene que poder avisar por aquí en
+                vez de tener que escribir aparte. */}
             <button
               onClick={() => send("declined")}
               disabled={sending}

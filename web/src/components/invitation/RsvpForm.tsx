@@ -40,6 +40,24 @@ export default function RsvpForm({
     return Math.min(Math.trunc(n), passes);
   }
 
+  /**
+   * Lo que se admite en el campo mientras se escribe: nada por debajo de uno
+   * ni por encima de los pases de la invitación.
+   *
+   * Los ceros a la izquierda se descartan en vez de corregirse después. Con
+   * solo mirar el tope, un cero lo pasaba —cero es menor que cualquier número
+   * de pases— y se podían encadenar «000» hasta salir del campo. Quitarlos
+   * aquí hace que teclear un cero simplemente no escriba nada.
+   *
+   * El vacío se conserva: hace falta para poder borrar la cifra y escribir
+   * otra, y al salir del campo se normaliza a uno.
+   */
+  function nextAttending(raw: string) {
+    const digits = raw.replace(/\D/g, "").replace(/^0+/, "");
+    if (digits === "") return "";
+    return Number(digits) <= passes ? digits : String(passes);
+  }
+
   // En el servidor `now` es null: damos el plazo por abierto para que el HTML
   // inicial coincida con la hidratación y no parpadee.
   const now = useNow();
@@ -145,20 +163,13 @@ export default function RsvpForm({
           <input
             id="asistentes"
             // `inputMode` saca el teclado numérico en el móvil sin los signos
-            // que trae `type="number"`, y el tope se aplica según se escribe:
-            // así el invitado ve al momento que no puede pasar de sus pases.
+            // que trae `type="number"`. Los límites se aplican según se
+            // escribe, así el invitado ve al momento qué puede poner.
             inputMode="numeric"
             pattern="[0-9]*"
             value={attending}
             disabled={onlyOne}
-            onChange={(e) => {
-              const digits = e.target.value.replace(/\D/g, "");
-              setAttending(
-                digits === "" || Number(digits) <= passes
-                  ? digits
-                  : String(passes),
-              );
-            }}
+            onChange={(e) => setAttending(nextAttending(e.target.value))}
             // Al salir del campo se normaliza lo que quedó a medias: vacío o
             // cero pasan a uno.
             onBlur={() => setAttending(String(clamp(attending)))}

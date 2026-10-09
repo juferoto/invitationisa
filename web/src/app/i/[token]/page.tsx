@@ -552,12 +552,29 @@ export default async function InvitationPage({ params }: Props) {
                           {event.hashtagLabel}
                         </p>
                       )}
-                      <p
-                        className="mt-1 font-script text-[var(--event-primary)]"
-                        style={{ fontSize: "var(--text-script-sm)" }}
-                      >
-                        {event.hashtag}
-                      </p>
+                      {/* Con enlace el hashtag es un botón ovalado que lleva
+                          a donde se juntan las fotos; sin él se queda como
+                          texto, que es como estaba. En los dos casos se ve
+                          igual de grande y en la misma letra: lo que cambia
+                          es que se pueda pulsar. */}
+                      {event.hashtagUrl ? (
+                        <a
+                          href={event.hashtagUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="pill mt-2 inline-block border-2 border-[var(--event-primary)]/30 px-8 py-2 font-script leading-tight text-[var(--event-primary)] transition-colors hover:border-[var(--event-primary)] hover:bg-[var(--event-primary)] hover:text-white"
+                          style={{ fontSize: "var(--text-script-sm)" }}
+                        >
+                          {event.hashtag}
+                        </a>
+                      ) : (
+                        <p
+                          className="mt-1 font-script text-[var(--event-primary)]"
+                          style={{ fontSize: "var(--text-script-sm)" }}
+                        >
+                          {event.hashtag}
+                        </p>
+                      )}
                     </>
                   )}
                 </Reveal>

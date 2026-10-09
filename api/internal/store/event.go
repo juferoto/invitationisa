@@ -9,7 +9,7 @@ var ErrNotFound = errors.New("no encontrado")
 
 const eventColumns = `id, slug, celebrant_name, title, intro_message, event_date, date_icon, rsvp_deadline,
 	blessing, parents, godparents, dress_code, dress_code_style, dress_code_women, dress_code_men,
-	reserved_colors, gift_message, hashtag, hashtag_label,
+	reserved_colors, gift_message, hashtag, hashtag_label, hashtag_url,
 	share_title, share_message, share_upload_url, notes,
 	closing_title, closing_message, closing_signoff, theme_primary, theme_accent`
 
@@ -18,7 +18,7 @@ func scanEvent(row interface{ Scan(...any) error }) (*Event, error) {
 	err := row.Scan(&e.ID, &e.Slug, &e.CelebrantName, &e.Title, &e.IntroMessage, &e.EventDate,
 		&e.DateIcon, &e.RSVPDeadline, &e.Blessing, &e.Parents, &e.Godparents, &e.DressCode, &e.DressCodeStyle,
 		&e.DressCodeWomen, &e.DressCodeMen, &e.ReservedColors,
-		&e.GiftMessage, &e.Hashtag, &e.HashtagLabel,
+		&e.GiftMessage, &e.Hashtag, &e.HashtagLabel, &e.HashtagURL,
 		&e.ShareTitle, &e.ShareMessage, &e.ShareUploadURL, &e.Notes,
 		&e.ClosingTitle, &e.ClosingMessage, &e.ClosingSignoff, &e.ThemePrimary, &e.ThemeAccent)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -39,14 +39,14 @@ func (s *Store) CreateEvent(e *Event) error {
 	res, err := s.db.Exec(`INSERT INTO events
 		(slug, celebrant_name, title, intro_message, event_date, date_icon, rsvp_deadline, blessing, parents,
 		 godparents, dress_code, dress_code_style, dress_code_women, dress_code_men,
-		 reserved_colors, gift_message, hashtag, hashtag_label,
+		 reserved_colors, gift_message, hashtag, hashtag_label, hashtag_url,
 		 share_title, share_message, share_upload_url, notes,
 		 closing_title, closing_message, closing_signoff, theme_primary, theme_accent)
-		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
 		e.Slug, e.CelebrantName, e.Title, e.IntroMessage, e.EventDate, e.DateIcon, e.RSVPDeadline,
 		e.Blessing, e.Parents,
 		e.Godparents, e.DressCode, e.DressCodeStyle, e.DressCodeWomen, e.DressCodeMen,
-		e.ReservedColors, e.GiftMessage, e.Hashtag, e.HashtagLabel,
+		e.ReservedColors, e.GiftMessage, e.Hashtag, e.HashtagLabel, e.HashtagURL,
 		e.ShareTitle, e.ShareMessage, e.ShareUploadURL, e.Notes,
 		e.ClosingTitle, e.ClosingMessage, e.ClosingSignoff,
 		e.ThemePrimary, e.ThemeAccent)
@@ -61,7 +61,7 @@ func (s *Store) UpdateEvent(e *Event) error {
 	_, err := s.db.Exec(`UPDATE events SET
 		slug=?, celebrant_name=?, title=?, intro_message=?, event_date=?, date_icon=?, rsvp_deadline=?,
 		blessing=?, parents=?, godparents=?, dress_code=?, dress_code_style=?, dress_code_women=?,
-		dress_code_men=?, reserved_colors=?, gift_message=?, hashtag=?, hashtag_label=?,
+		dress_code_men=?, reserved_colors=?, gift_message=?, hashtag=?, hashtag_label=?, hashtag_url=?,
 		share_title=?, share_message=?, share_upload_url=?, notes=?,
 		closing_title=?, closing_message=?, closing_signoff=?,
 		theme_primary=?, theme_accent=?, updated_at=datetime('now')
@@ -69,7 +69,7 @@ func (s *Store) UpdateEvent(e *Event) error {
 		e.Slug, e.CelebrantName, e.Title, e.IntroMessage, e.EventDate, e.DateIcon, e.RSVPDeadline,
 		e.Blessing, e.Parents,
 		e.Godparents, e.DressCode, e.DressCodeStyle, e.DressCodeWomen, e.DressCodeMen,
-		e.ReservedColors, e.GiftMessage, e.Hashtag, e.HashtagLabel,
+		e.ReservedColors, e.GiftMessage, e.Hashtag, e.HashtagLabel, e.HashtagURL,
 		e.ShareTitle, e.ShareMessage, e.ShareUploadURL, e.Notes,
 		e.ClosingTitle, e.ClosingMessage, e.ClosingSignoff,
 		e.ThemePrimary, e.ThemeAccent, e.ID)

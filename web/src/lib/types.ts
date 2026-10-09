@@ -18,6 +18,7 @@ export type Event = {
   giftMessage: string;
   hashtag: string;
   hashtagLabel: string;
+  hashtagUrl: string;
   shareTitle: string;
   shareMessage: string;
   shareUploadUrl: string;

@@ -156,13 +156,18 @@ const GROUPS: { title: string; help: string; fields: Field[] }[] = [
   },
   {
     title: "Galería compartida",
-    help: "Invita a los asistentes a subir sus fotos y a usar el hashtag.",
+    help: "Invita a los asistentes a subir sus fotos y a usar el hashtag. Si le pones enlace al hashtag, se convierte en un botón que lleva allí.",
     fields: [
       { key: "shareTitle", label: "Título (ej. ¡Vive mis XV conmigo!)" },
       { key: "shareUploadUrl", label: 'Enlace del botón "Subir fotos"' },
       { key: "shareMessage", label: "Mensaje", type: "multiline", wide: true },
       { key: "hashtagLabel", label: "Texto antes del hashtag" },
       { key: "hashtag", label: "Hashtag" },
+      {
+        key: "hashtagUrl",
+        label: "Enlace del hashtag (Instagram, álbum compartido…)",
+        wide: true,
+      },
     ],
   },
   {

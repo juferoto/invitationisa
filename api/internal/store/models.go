@@ -20,6 +20,8 @@ type Event struct {
 	GiftMessage    string `json:"giftMessage"`
 	Hashtag        string `json:"hashtag"`
 	HashtagLabel   string `json:"hashtagLabel"`
+	// A dónde lleva el hashtag al pulsarlo. Vacío, no es un enlace.
+	HashtagURL     string `json:"hashtagUrl"`
 	ShareTitle     string `json:"shareTitle"`
 	ShareMessage   string `json:"shareMessage"`
 	ShareUploadURL string `json:"shareUploadUrl"`

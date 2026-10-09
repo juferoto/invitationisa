@@ -562,8 +562,14 @@ export default async function InvitationPage({ params }: Props) {
                           href={event.hashtagUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="pill mt-2 inline-block border-2 border-[var(--event-primary)]/30 px-8 py-2 font-script leading-tight text-[var(--event-primary)] transition-colors hover:border-[var(--event-primary)] hover:bg-[var(--event-primary)] hover:text-white"
-                          style={{ fontSize: "var(--text-script-sm)" }}
+                          // Blanco en reposo y azul al pasar por encima, al
+                          // revés que el botón de subir fotos: así se
+                          // distinguen a simple vista cuál es la acción
+                          // principal y cuál la secundaria.
+                          className="pill mt-2 inline-block border-2 border-[var(--event-primary)]/30 bg-white px-8 py-3 font-script leading-tight text-[var(--event-primary)] shadow-md transition-colors hover:border-[var(--event-primary)] hover:bg-[var(--event-primary)] hover:text-white"
+                          // Un escalón por debajo del tamaño de los títulos:
+                          // de botón, no de encabezado.
+                          style={{ fontSize: "var(--text-script-xs)" }}
                         >
                           {event.hashtag}
                         </a>
